@@ -234,9 +234,9 @@ async function generatePKCE() {
 
 async function getAuthUrl() {
   const { verifier, challenge } = await generatePKCE();
-  sessionStorage.setItem('pkce_verifier', verifier);
-  const state = verifier; // pass verifier as state so callback can use it
-  return 'https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=2934667583955420&redirect_uri=' + encodeURIComponent('https://garimpeiro-git-main-marcola93s-projects.vercel.app/api/callback') + '&code_challenge=' + challenge + '&code_challenge_method=S256&state=' + verifier;
+  // Salva verifier em cookie para o callback usar
+  document.cookie = 'pkce_verifier=' + verifier + '; path=/; max-age=600; samesite=lax';
+  return 'https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=2934667583955420&redirect_uri=' + encodeURIComponent('https://garimpeiro-git-main-marcola93s-projects.vercel.app/api/callback') + '&code_challenge=' + challenge + '&code_challenge_method=S256';
 }
 
 (async () => {
