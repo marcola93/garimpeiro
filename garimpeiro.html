@@ -262,6 +262,14 @@ const ML_APP_ID = '2934667583955420';
 const ML_SECRET  = 'eASEhQYr3HZrsBjytAAVkzKQqQzPLUU4';
 let mlToken = null;
 
+// ── Proxy helper — todas as chamadas ML passam por /api/ml ────────────────
+function mlFetch(mlUrl, token) {
+  const encoded = encodeURIComponent(mlUrl);
+  const headers = {'Accept':'application/json'};
+  if (token) headers['Authorization'] = 'Bearer '+token;
+  return fetch('/api/ml?url='+encoded, {headers});
+}
+
 // ── Auth ────────────────────────────────────────────────
 async function getMLToken() {
   if (mlToken) return mlToken;
@@ -298,7 +306,7 @@ async function loadRootCategories() {
   const list = document.getElementById('cat-list');
   list.innerHTML = '<div class="cat-loading">Carregando...</div>';
   try {
-    const res = await fetch('https://api.mercadolibre.com/sites/MLB/categories');
+    const res = await mlFetch('https://api.mercadolibre.com/sites/MLB/categories', null);
     if (!res.ok) throw new Error('status '+res.status);
     const cats = await res.json();
     renderCatList(cats, false);
@@ -311,7 +319,7 @@ async function loadSubcategories(catId, catName) {
   const list = document.getElementById('cat-list');
   list.innerHTML = '<div class="cat-loading">Carregando subcategorias...</div>';
   try {
-    const res = await fetch(`https://api.mercadolibre.com/categories/${catId}`);
+    const res = await mlFetch(`https://api.mercadolibre.com/categories/${catId}`, null);
     if (!res.ok) throw new Error('status '+res.status);
     const data = await res.json();
     const children = data.children_categories || [];
@@ -455,7 +463,7 @@ async function fetchMLByCategory(catId, filters) {
   if (filters.precoMin > 0) url += `&price_min=${filters.precoMin}`;
   if (filters.precoMax < 999999) url += `&price_max=${filters.precoMax}`;
 
-  const res = await fetch(url, {headers});
+  const res = await mlFetch(url, token);
   if (!res.ok) throw new Error('Erro ML status '+res.status);
   const data = await res.json();
 
@@ -468,8 +476,8 @@ async function fetchMLByCategory(catId, filters) {
     await Promise.all(data.results.slice(0,8).map(async (item, i) => {
       try {
         const [iR, sR] = await Promise.all([
-          fetch(`https://api.mercadolibre.com/items/${item.id}`, {headers}),
-          fetch(`https://api.mercadolibre.com/users/${item.seller.id}`, {headers})
+          mlFetch(`https://api.mercadolibre.com/items/${item.id}`, token),
+          mlFetch(`https://api.mercadolibre.com/users/${item.seller.id}`, token)
         ]);
         if (iR.ok) { const d=await iR.json(); data.results[i].health=d.health; data.results[i].reviews_rating=d.reviews?.rating_average; data.results[i].available_quantity=d.available_quantity; }
         if (sR.ok) { const s=await sR.json(); data.results[i].seller_info={nickname:s.nickname,reputation:s.seller_reputation?.level_id,transactions:s.seller_reputation?.transactions?.total,positive_pct:s.seller_reputation?.transactions?.ratings?.positive}; }
