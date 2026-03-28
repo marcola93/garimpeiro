@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garimpeiro — Oportunidades ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --yellow:#FFE600; --ydim:#FFE60022;
+  --bg:#0D0D0D; --surf:#161616; --surf2:#1E1E1E;
+  --border:#2A2A2A; --border2:#383838;
+  --text:#F0EDE6; --muted:#6B6860;
+  --green:#00E5A0; --red:#FF4D4D; --orange:#FF8C42; --blue:#4DA6FF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh}
+header{padding:18px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px}
+.logo-mark{width:34px;height:34px;background:var(--yellow);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:18px;height:18px}
+h1{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;letter-spacing:-.3px}
+.badge{margin-left:auto;font-size:10px;background:var(--ydim);color:var(--yellow);border:1px solid var(--yellow);border-radius:4px;padding:2px 8px;letter-spacing:1px;text-transform:uppercase}
+.layout{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 61px)}
+.sidebar{border-right:1px solid var(--border);padding:20px;display:flex;flex-direction:column;gap:0;overflow-y:auto}
+.sidebar-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:14px;min-height:20px}
+.bc-item{font-size:10px;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:4px;transition:color .15s}
+.bc-item:hover{color:var(--yellow)}
+.bc-sep{font-size:10px;color:var(--border2)}
+.bc-current{font-size:10px;color:var(--text)}
+.cat-list{display:flex;flex-direction:column;gap:2px;flex:1}
+.cat-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text);transition:all .15s;border:1px solid transparent}
+.cat-item:hover{background:var(--surf);border-color:var(--border)}
+.cat-item.selected{background:var(--ydim);border-color:var(--yellow);color:var(--yellow)}
+.cat-item .arrow{font-size:10px;color:var(--muted);flex-shrink:0}
+.cat-loading{padding:20px;text-align:center;color:var(--muted);font-size:12px}
+.cat-error{padding:14px;font-size:11px;color:var(--red);background:#FF4D4D11;border:1px solid #FF4D4D33;border-radius:8px;line-height:1.5}
+.btn-garimpar{width:100%;background:var(--yellow);color:#0D0D0D;border:none;border-radius:8px;padding:13px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:.5px;transition:opacity .15s;margin-top:16px}
+.btn-garimpar:hover{opacity:.88}
+.btn-garimpar:disabled{opacity:.35;cursor:not-allowed}
+.selected-path{margin-top:12px;padding:10px 12px;background:var(--surf);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6}
+.selected-path b{color:var(--text);display:block;margin-bottom:2px;font-size:12px}
+.filter-section{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+.filter-group{margin-bottom:12px}
+.filter-group label{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.filter-group select,.filter-group input[type=number]{width:100%;background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);outline:none;transition:border-color .2s;appearance:none}
+.filter-group select:focus,.filter-group input[type=number]:focus{border-color:var(--yellow)}
+.filter-group select option{background:#1E1E1E}
+.filter-range{display:flex;gap:6px;align-items:center}
+.filter-range input{flex:1}
+.filter-range span{color:var(--muted);font-size:11px}
+#status-bar{padding:8px 28px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);min-height:32px;display:flex;align-items:center;gap:8px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.dot.active{background:var(--green);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+#results{padding:24px 28px;overflow-y:auto}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px}
+.stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.stat-value{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text)}
+.stat-value.green{color:var(--green)}
+.stat-value.yellow{color:var(--yellow)}
+.stat-value.orange{color:var(--orange)}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.section-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px}
+.product-card{background:var(--surf);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s}
+.product-card:hover{border-color:var(--border2)}
+.product-card.hot{border-color:var(--green)}
+.card-header{padding:14px 16px 10px;display:flex;align-items:flex-start;gap:12px}
+.score-badge{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;flex-shrink:0}
+.score-high{background:#00E5A022;color:var(--green)}
+.score-mid{background:#FF8C4222;color:var(--orange)}
+.score-low{background:#FF4D4D22;color:var(--red)}
+.card-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;flex:1}
+.card-body{padding:0 16px 12px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.metric{background:var(--surf2);border-radius:6px;padding:7px 9px}
+.metric-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.metric-value{font-size:12px;color:var(--text)}
+.metric-value.green{color:var(--green)}
+.metric-value.yellow{color:var(--yellow)}
+.metric-value.red{color:var(--red)}
+.card-tags{padding:0 16px 9px;display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:9px;padding:2px 7px;border-radius:20px;border:1px solid var(--border);color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.tag.green{border-color:#00E5A044;color:var(--green)}
+.tag.orange{border-color:#FF8C4244;color:var(--orange)}
+.tag.red{border-color:#FF4D4D44;color:var(--red)}
+.card-insight{margin:0 16px 9px;padding:9px 12px;background:var(--ydim);border-left:2px solid var(--yellow);font-size:11px;color:#c8b800;line-height:1.5}
+.card-insight.action{background:#00E5A011;border-color:var(--green);color:#00b880}
+.card-link{display:block;margin:0 16px 14px;padding:7px;text-align:center;border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--muted);text-decoration:none;transition:all .15s}
+.card-link:hover{border-color:var(--blue);color:var(--blue)}
+.ai-box{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:22px;white-space:pre-wrap;font-size:13px;line-height:1.7;color:var(--text)}
+.ai-box h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--yellow);margin-bottom:10px}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state .big{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--surf2);margin-bottom:14px}
+.empty-state p{font-size:13px;line-height:1.9}
+.empty-hint{display:inline-block;margin-top:12px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--muted)}
+.info-box{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px;font-size:13px;color:var(--muted);margin-bottom:18px;text-align:center;line-height:1.7}
+.error-msg{background:#FF4D4D11;border:1px solid var(--red);border-radius:8px;padding:14px 16px;color:var(--red);font-size:13px;margin-bottom:18px}
+@media(max-width:700px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{border-right:none;border-bottom:1px solid var(--border)}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">
+    <svg viewBox="0 0 20 20" fill="none">
+      <circle cx="8.5" cy="8.5" r="5" stroke="#0D0D0D" stroke-width="2.2"/>
+      <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="#0D0D0D" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <h1>Garimpeiro</h1>
+  <span class="badge" id="auth-badge">conectando...</span>
+</header>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-title">Navegar categorias</div>
+    <div class="breadcrumb" id="breadcrumb"></div>
+    <div class="cat-list" id="cat-list">
+      <div class="cat-loading">Carregando categorias...</div>
+    </div>
+    <div class="selected-path" id="selected-path" style="display:none">
+      <b id="selected-label">—</b>
+      <span id="selected-id" style="font-size:10px;opacity:.5"></span>
+    </div>
+    <button class="btn-garimpar" id="btn-garimpar" disabled onclick="runSearch()">
+      Garimpar nesta categoria
+    </button>
+    <div class="filter-section">
+      <div class="sidebar-title">Filtros</div>
+      <div class="filter-group">
+        <label>Faixa de preço (R$)</label>
+        <div class="filter-range">
+          <input type="number" id="f-preco-min" value="50" placeholder="Mín">
+          <span>até</span>
+          <input type="number" id="f-preco-max" value="200" placeholder="Máx">
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Tamanho do produto</label>
+        <select id="f-tamanho">
+          <option value="">Qualquer tamanho</option>
+          <option value="Pequeno" selected>Pequeno — caixa de sapato</option>
+          <option value="Médio">Médio — mochila</option>
+          <option value="Grande">Grande — móveis, eletros</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Vendas mínimas</label>
+        <select id="f-vendas-min">
+          <option value="0">Qualquer quantidade</option>
+          <option value="10">Acima de 10</option>
+          <option value="50" selected>Acima de 50</option>
+          <option value="100">Acima de 100</option>
+          <option value="500">Acima de 500</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Concorrência desejada</label>
+        <select id="f-concorrencia">
+          <option value="">Qualquer nível</option>
+          <option value="Baixa" selected>Baixa — espaço para entrar</option>
+          <option value="Média">Média</option>
+          <option value="Alta">Alta</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Score mínimo</label>
+        <select id="f-score-min">
+          <option value="0">Qualquer</option>
+          <option value="50">50+</option>
+          <option value="65" selected>65+</option>
+          <option value="80">80+</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column">
+    <div id="status-bar">
+      <span class="dot" id="dot"></span>
+      <span id="status-text">Escolha uma categoria ao lado para começar.</span>
+    </div>
+    <div id="results">
+      <div class="empty-state">
+        <div class="big">⛏</div>
+        <p>Navegue pelas categorias do Mercado Livre<br>
+        e clique em <b style="color:var(--text)">Garimpar nesta categoria</b><br>
+        quando encontrar onde quer buscar oportunidades.</p>
+        <span class="empty-hint">Você pode ir até a subcategoria mais específica</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ML_APP_ID = '2934667583955420';
+const ML_SECRET  = 'eASEhQYr3HZrsBjytAAVkzKQqQzPLUU4';
+let mlToken = null;
+
+// Todas as chamadas para o ML passam pelo proxy /api/ml
+function mlFetch(mlUrl, token) {
+  const headers = {'Accept':'application/json'};
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  return fetch('/api/ml?url=' + encodeURIComponent(mlUrl), {headers});
+}
+
+async function getMLToken() {
+  if (mlToken) return mlToken;
+  try {
+    const res = await fetch('/api/ml', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded'},
+      body: 'grant_type=client_credentials&client_id=' + ML_APP_ID + '&client_secret=' + ML_SECRET
+    });
+    if (!res.ok) return null;
+    const d = await res.json();
+    mlToken = d.access_token || null;
+    return mlToken;
+  } catch(e) { return null; }
+}
+
+(async () => {
+  const badge = document.getElementById('auth-badge');
+  await getMLToken();
+  if (mlToken) {
+    badge.textContent = 'Conectado ✓';
+    badge.style.cssText = 'margin-left:auto;font-size:10px;border:1px solid #00E5A0;border-radius:4px;padding:2px 8px;letter-spacing:1px;text-transform:uppercase;background:#00E5A011;color:#00E5A0';
+  } else {
+    badge.textContent = 'Modo público';
+  }
+  loadRootCategories();
+})();
+
+let navStack = [];
+let selectedCat = null;
+
+async function loadRootCategories() {
+  const list = document.getElementById('cat-list');
+  list.innerHTML = '<div class="cat-loading">Carregando...</div>';
+  try {
+    const res = await mlFetch('https://api.mercadolibre.com/sites/MLB/categories', mlToken);
+    if (!res.ok) throw new Error('status ' + res.status);
+    const cats = await res.json();
+    renderCatList(cats, false, null);
+  } catch(e) {
+    list.innerHTML = '<div class="cat-error">Erro ao carregar categorias.<br>' + e.message + '</div>';
+  }
+}
+
+async function loadSubcategories(catId, catName) {
+  const list = document.getElementById('cat-list');
+  list.innerHTML = '<div class="cat-loading">Carregando subcategorias...</div>';
+  try {
+    const res = await mlFetch('https://api.mercadolibre.com/categories/' + catId, mlToken);
+    if (!res.ok) throw new Error('status ' + res.status);
+    const data = await res.json();
+    const children = data.children_categories || [];
+    renderCatList(children, true, {id: catId, name: catName});
+  } catch(e) {
+    list.innerHTML = '<div class="cat-error">Erro ao carregar subcategorias.<br>' + e.message + '</div>';
+  }
+}
+
+function renderCatList(cats, hasParent, parentCat) {
+  const list = document.getElementById('cat-list');
+  list.innerHTML = '';
+
+  if (hasParent && parentCat) {
+    setSelectedCat(parentCat);
+    const selfItem = document.createElement('div');
+    selfItem.className = 'cat-item selected';
+    selfItem.style.marginBottom = '6px';
+    selfItem.innerHTML = '<span style="font-size:11px">Garimpar em toda esta categoria</span>';
+    selfItem.onclick = () => setSelectedCat(parentCat);
+    list.appendChild(selfItem);
+
+    if (cats.length > 0) {
+      const divider = document.createElement('div');
+      divider.style.cssText = 'font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:8px 4px 6px';
+      divider.textContent = 'Ou escolha uma subcategoria';
+      list.appendChild(divider);
+    } else {
+      const msg = document.createElement('div');
+      msg.style.cssText = 'font-size:11px;color:var(--muted);padding:12px;text-align:center;line-height:1.6';
+      msg.textContent = 'Nenhuma subcategoria. Clique em "Garimpar nesta categoria".';
+      list.appendChild(msg);
+      return;
+    }
+  }
+
+  cats.forEach(cat => {
+    const item = document.createElement('div');
+    item.className = 'cat-item';
+    item.innerHTML = '<span>' + cat.name + '</span><span class="arrow">▶</span>';
+    item.onclick = () => {
+      navStack.push({id: cat.id, name: cat.name});
+      updateBreadcrumb();
+      loadSubcategories(cat.id, cat.name);
+    };
+    list.appendChild(item);
+  });
+}
+
+function setSelectedCat(cat) {
+  selectedCat = cat;
+  document.getElementById('selected-path').style.display = 'block';
+  document.getElementById('selected-label').textContent = cat.name;
+  document.getElementById('selected-id').textContent = cat.id;
+  const btn = document.getElementById('btn-garimpar');
+  btn.disabled = false;
+  btn.textContent = 'Garimpar em: ' + cat.name;
+}
+
+function updateBreadcrumb() {
+  const bc = document.getElementById('breadcrumb');
+  bc.innerHTML = '';
+  const root = document.createElement('span');
+  root.className = 'bc-item';
+  root.textContent = 'Início';
+  root.onclick = () => {
+    navStack = [];
+    selectedCat = null;
+    document.getElementById('selected-path').style.display = 'none';
+    const btn = document.getElementById('btn-garimpar');
+    btn.disabled = true;
+    btn.textContent = 'Garimpar nesta categoria';
+    updateBreadcrumb();
+    loadRootCategories();
+  };
+  bc.appendChild(root);
+
+  navStack.forEach((item, i) => {
+    const sep = document.createElement('span');
+    sep.className = 'bc-sep';
+    sep.textContent = '›';
+    bc.appendChild(sep);
+    const el = document.createElement('span');
+    const isLast = i === navStack.length - 1;
+    el.className = isLast ? 'bc-current' : 'bc-item';
+    el.textContent = item.name;
+    if (!isLast) {
+      el.onclick = () => {
+        navStack = navStack.slice(0, i + 1);
+        updateBreadcrumb();
+        loadSubcategories(navStack[i].id, navStack[i].name);
+      };
+    }
+    bc.appendChild(el);
+  });
+}
+
+function getFilters() {
+  return {
+    precoMin: parseFloat(document.getElementById('f-preco-min').value) || 0,
+    precoMax: parseFloat(document.getElementById('f-preco-max').value) || 999999,
+    tamanho: document.getElementById('f-tamanho').value,
+    vendasMin: parseInt(document.getElementById('f-vendas-min').value) || 0,
+    concorrencia: document.getElementById('f-concorrencia').value,
+    scoreMin: parseInt(document.getElementById('f-score-min').value) || 0,
+  };
+}
+
+function setStatus(msg, active) {
+  document.getElementById('status-text').textContent = msg;
+  document.getElementById('dot').className = 'dot' + (active ? ' active' : '');
+}
+
+function scoreColor(s) { return s >= 70 ? 'high' : s >= 45 ? 'mid' : 'low'; }
+function formatBRL(n) { return 'R$ ' + Number(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+async function fetchMLByCategory(catId, filters) {
+  const token = await getMLToken();
+  let url = 'https://api.mercadolibre.com/sites/MLB/search?category=' + catId + '&limit=50';
+  if (filters.precoMin > 0) url += '&price_min=' + filters.precoMin;
+  if (filters.precoMax < 999999) url += '&price_max=' + filters.precoMax;
+
+  const res = await mlFetch(url, token);
+  if (!res.ok) throw new Error('Erro ML status ' + res.status);
+  const data = await res.json();
+
+  if (filters.vendasMin > 0 && data.results)
+    data.results = data.results.filter(it => (it.sold_quantity || 0) >= filters.vendasMin);
+
+  if (token && data.results && data.results.length) {
+    await Promise.all(data.results.slice(0, 8).map(async (item, i) => {
+      try {
+        const iR = await mlFetch('https://api.mercadolibre.com/items/' + item.id, token);
+        const sR = await mlFetch('https://api.mercadolibre.com/users/' + item.seller.id, token);
+        if (iR.ok) {
+          const d = await iR.json();
+          data.results[i].health = d.health;
+          data.results[i].reviews_rating = d.reviews && d.reviews.rating_average;
+          data.results[i].available_quantity = d.available_quantity;
+        }
+        if (sR.ok) {
+          const s = await sR.json();
+          data.results[i].seller_info = {
+            nickname: s.nickname,
+            reputation: s.seller_reputation && s.seller_reputation.level_id,
+            transactions: s.seller_reputation && s.seller_reputation.transactions && s.seller_reputation.transactions.total,
+            positive_pct: s.seller_reputation && s.seller_reputation.transactions && s.seller_reputation.transactions.ratings && s.seller_reputation.transactions.ratings.positive
+          };
+        }
+      } catch(e) {}
+    }));
+  }
+  return data;
+}
+
+async function analyzeWithClaude(catPath, items, filters) {
+  const tamanhoDesc = {'Pequeno':'pequeno (caixa de sapato)','Médio':'médio (mochila)','Grande':'grande','':'qualquer tamanho'};
+  const summary = items.slice(0, 20).map((it, i) => {
+    const rep = (it.seller_info && it.seller_info.reputation) || (it.seller && it.seller.seller_reputation && it.seller.seller_reputation.level_id) || 'desconhecido';
+    const nick = it.seller_info && it.seller_info.nickname ? ' (' + it.seller_info.nickname + ')' : '';
+    const tx = it.seller_info && it.seller_info.transactions ? ', ' + it.seller_info.transactions + ' transações' : '';
+    const pos = it.seller_info && it.seller_info.positive_pct ? ', ' + (it.seller_info.positive_pct * 100).toFixed(0) + '% positivo' : '';
+    const rat = it.reviews_rating ? ', avaliação ' + it.reviews_rating.toFixed(1) : '';
+    const h = it.health != null ? ', health ' + (it.health * 100).toFixed(0) + '%' : '';
+    return (i+1) + '. "' + it.title + '" | R$' + it.price + ' | Vendidos: ' + (it.sold_quantity||0) + ' | ' + (it.condition==='new'?'novo':'usado') + ' | Vendedor: ' + rep + nick + tx + pos + rat + h;
+  }).join('\n');
+
+  const prompt = 'Você é especialista em e-commerce Brasil, focado em Mercado Livre.\n\nPERFIL DO VENDEDOR:\n- Categoria: ' + catPath + '\n- Faixa de preço: R$' + filters.precoMin + ' a R$' + filters.precoMax + '\n- Tamanho preferido: ' + (tamanhoDesc[filters.tamanho]||'qualquer') + '\n- Vendas mínimas: ' + filters.vendasMin + '\n- Concorrência desejada: ' + (filters.concorrencia||'qualquer') + '\n- Score mínimo: ' + filters.scoreMin + '/100\n\nPRODUTOS DA CATEGORIA (' + items.length + ' resultados):\n' + summary + '\n\nIdentifique os nichos com maior oportunidade. Avalie: demanda, espaço para entrar, preço dentro da faixa, tamanho do produto.\n\nResponda SOMENTE em JSON válido, sem markdown:\n{"resumo":"2-3 frases sobre o mercado","oportunidades":[{"titulo":"nome curto","score":0-100,"preco_min":número,"preco_max":número,"tamanho_produto":"Pequeno|Médio|Grande","demanda":"Alta|Média|Baixa","concorrencia":"Alta|Média|Baixa","nivel_vendedores":"Fraco|Médio|Forte","margem_estimada":"ex: 35%","encaixa_perfil":true,"por_que_oportunidade":"1 frase","acao":"1 frase de ação"}],"recomendacao_geral":"parágrafo com estratégia"}\nMáximo 5 oportunidades.';
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:2000, messages:[{role:'user',content:prompt}]})
+  });
+  if (!res.ok) throw new Error('Erro API Claude');
+  const data = await res.json();
+  return JSON.parse(data.content.map(b => b.text||'').join('').replace(/```json|```/g,'').trim());
+}
+
+async function runSearch() {
+  if (!selectedCat) return;
+  const filters = getFilters();
+  const btn = document.getElementById('btn-garimpar');
+  btn.disabled = true;
+  btn.textContent = 'Garimpando...';
+  const catPath = navStack.map(n => n.name).join(' › ') || selectedCat.name;
+  const results = document.getElementById('results');
+  results.innerHTML = '';
+  setStatus('Buscando em "' + selectedCat.name + '"...', true);
+
+  try {
+    const mlData = await fetchMLByCategory(selectedCat.id, filters);
+    const items = mlData.results || [];
+
+    if (!items.length) {
+      setStatus('Nenhum produto encontrado com esses filtros.', false);
+      results.innerHTML = '<div class="info-box">Nenhum produto encontrado em <b>' + selectedCat.name + '</b>.<br>Tente ampliar a faixa de preço ou reduzir as vendas mínimas.</div>';
+      btn.disabled = false;
+      btn.textContent = 'Garimpar em: ' + selectedCat.name;
+      return;
+    }
+
+    setStatus(items.length + ' produtos encontrados. Analisando com IA...', true);
+    const analysis = await analyzeWithClaude(catPath, items, filters);
+    const ops = (analysis.oportunidades || []).filter(op => op.score >= filters.scoreMin);
+    setStatus(ops.length + ' oportunidades em "' + selectedCat.name + '".', false);
+
+    const prices = items.filter(i => i.price > 0).map(i => i.price);
+    const avg = prices.length ? prices.reduce((a,b) => a+b, 0) / prices.length : 0;
+    const totalSold = items.reduce((a,b) => a + (b.sold_quantity||0), 0);
+    const top = ops.length ? Math.max.apply(null, ops.map(o => o.score)) : 0;
+    const match = ops.filter(o => o.encaixa_perfil).length;
+
+    let html = '<div style="font-size:11px;color:var(--muted);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">Analisando: <span style="color:var(--text)">' + catPath + '</span> &nbsp;·&nbsp; <span style="color:var(--yellow)">' + items.length + ' produtos</span></div>';
+
+    html += '<div class="summary-grid"><div class="stat-card"><div class="stat-label">Produtos</div><div class="stat-value">' + items.length + '</div><div class="stat-sub">na categoria</div></div><div class="stat-card"><div class="stat-label">Preço médio</div><div class="stat-value yellow">' + formatBRL(avg) + '</div><div class="stat-sub">no nicho</div></div><div class="stat-card"><div class="stat-label">Volume vendido</div><div class="stat-value green">' + totalSold.toLocaleString('pt-BR') + '</div><div class="stat-sub">total</div></div><div class="stat-card"><div class="stat-label">No seu perfil</div><div class="stat-value ' + (match>0?'green':'orange') + '">' + match + ' / ' + ops.length + '</div><div class="stat-sub">oportunidades</div></div></div>';
+
+    if (analysis.resumo) html += '<div class="ai-box"><h3>// Análise da categoria</h3>' + analysis.resumo + '</div>';
+
+    if (!ops.length) {
+      html += '<div class="info-box">Nenhuma oportunidade atingiu score ≥ ' + filters.scoreMin + '.<br>Reduza o score mínimo ou explore outra subcategoria.</div>';
+    } else {
+      html += '<div class="section-label">Oportunidades identificadas</div><div class="products-grid">';
+      ops.forEach(op => {
+        const sc = scoreColor(op.score);
+        const isHot = op.score >= 70 && op.encaixa_perfil;
+        const dC = op.demanda==='Alta'?'green':op.demanda==='Média'?'yellow':'';
+        const cC = op.concorrencia==='Baixa'?'green':op.concorrencia==='Média'?'yellow':'red';
+        const vC = op.nivel_vendedores==='Fraco'?'green':op.nivel_vendedores==='Médio'?'yellow':'red';
+        const url = 'https://www.mercadolivre.com.br/jm/search?q=' + encodeURIComponent(op.titulo) + '&category=' + selectedCat.id + '&price_min=' + filters.precoMin + '&price_max=' + filters.precoMax;
+        html += '<div class="product-card ' + (isHot?'hot':'') + '"><div class="card-header"><div class="score-badge score-' + sc + '">' + op.score + '</div><div class="card-title">' + op.titulo + (op.encaixa_perfil?' ✓':'') + '</div></div><div class="card-body"><div class="metric"><div class="metric-label">Preço</div><div class="metric-value">' + formatBRL(op.preco_min) + ' – ' + formatBRL(op.preco_max) + '</div></div><div class="metric"><div class="metric-label">Tamanho</div><div class="metric-value">' + (op.tamanho_produto||'—') + '</div></div><div class="metric"><div class="metric-label">Demanda</div><div class="metric-value ' + dC + '">' + op.demanda + '</div></div><div class="metric"><div class="metric-label">Concorrência</div><div class="metric-value ' + cC + '">' + op.concorrencia + '</div></div><div class="metric"><div class="metric-label">Vendedores</div><div class="metric-value ' + vC + '">' + op.nivel_vendedores + '</div></div><div class="metric"><div class="metric-label">Margem est.</div><div class="metric-value yellow">' + op.margem_estimada + '</div></div></div><div class="card-tags">' + (op.concorrencia==='Baixa'?'<span class="tag green">Baixa concorrência</span>':op.concorrencia==='Média'?'<span class="tag orange">Média concorrência</span>':'<span class="tag red">Alta concorrência</span>') + (op.tamanho_produto?'<span class="tag">'+op.tamanho_produto+'</span>':'') + (op.encaixa_perfil?'<span class="tag green">Encaixa perfil</span>':'') + '</div>' + (op.por_que_oportunidade?'<div class="card-insight">↳ '+op.por_que_oportunidade+'</div>':'') + (op.acao?'<div class="card-insight action">→ '+op.acao+'</div>':'') + '<a class="card-link" href="' + url + '" target="_blank">Ver no Mercado Livre ↗</a></div>';
+      });
+      html += '</div>';
+    }
+
+    if (analysis.recomendacao_geral) {
+      html += '<div class="section-label">Estratégia de entrada</div><div class="ai-box">' + analysis.recomendacao_geral + '</div>';
+    }
+
+    results.innerHTML = html;
+  } catch(err) {
+    setStatus('Erro na análise.', false);
+    results.innerHTML = '<div class="error-msg"><b>Erro:</b> ' + err.message + '</div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Garimpar em: ' + selectedCat.name;
+}
+</script>
+</body>
+</html>
