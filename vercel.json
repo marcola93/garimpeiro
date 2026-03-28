@@ -1,0 +1,7 @@
+json{
+  "functions": {
+    "api/ml.js": {
+      "runtime": "edge"
+    }
+  }
+}
