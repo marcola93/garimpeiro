@@ -245,6 +245,7 @@ async function loadRootCategories() {
   list.innerHTML = '<div class="cat-loading">Carregando...</div>';
   try {
     const token = await getMLToken();
+    await new Promise(r => setTimeout(r, 500));
     const res = await mlFetch('https://api.mercadolibre.com/sites/MLB/categories', token);
     if (!res.ok) throw new Error('status ' + res.status);
     const cats = await res.json();
