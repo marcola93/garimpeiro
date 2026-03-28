@@ -1,21 +1,28 @@
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+export const config = { runtime: 'edge' };
 
-  if (req.method === 'OPTIONS') { res.status(200).end(); return; }
+export default async function handler(req) {
+  const { searchParams } = new URL(req.url);
+  const url = searchParams.get('url');
 
-  const { url } = req.query;
-  if (!url) { res.status(400).json({ error: 'url param required' }); return; }
+  if (!url) {
+    return new Response(JSON.stringify({ error: 'url param required' }), { status: 400 });
+  }
+
+  const headers = { 'Accept': 'application/json' };
+  const auth = req.headers.get('authorization');
+  if (auth) headers['Authorization'] = auth;
 
   try {
-    const headers = { 'Accept': 'application/json' };
-    if (req.headers.authorization) headers['Authorization'] = req.headers.authorization;
-
     const response = await fetch(decodeURIComponent(url), { headers });
-    const data = await response.json();
-    res.status(response.status).json(data);
+    const data = await response.text();
+    return new Response(data, {
+      status: response.status,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      }
+    });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
   }
 }
