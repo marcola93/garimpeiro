@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garimpeiro — Oportunidades ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --yellow:#FFE600; --ydim:#FFE60022;
+  --bg:#0D0D0D; --surf:#161616; --surf2:#1E1E1E;
+  --border:#2A2A2A; --border2:#383838;
+  --text:#F0EDE6; --muted:#6B6860;
+  --green:#00E5A0; --red:#FF4D4D; --orange:#FF8C42; --blue:#4DA6FF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh}
+header{padding:18px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px}
+.logo-mark{width:34px;height:34px;background:var(--yellow);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:18px;height:18px}
+h1{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;letter-spacing:-.3px}
+.badge{margin-left:auto;font-size:10px;background:var(--ydim);color:var(--yellow);border:1px solid var(--yellow);border-radius:4px;padding:2px 8px;letter-spacing:1px;text-transform:uppercase}
+.layout{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 61px)}
+.sidebar{border-right:1px solid var(--border);padding:20px;display:flex;flex-direction:column;gap:0;overflow-y:auto}
+.sidebar-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:14px;min-height:20px}
+.bc-item{font-size:10px;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:4px;transition:color .15s}
+.bc-item:hover{color:var(--yellow)}
+.bc-sep{font-size:10px;color:var(--border2)}
+.bc-current{font-size:10px;color:var(--text)}
+.cat-list{display:flex;flex-direction:column;gap:2px;flex:1}
+.cat-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text);transition:all .15s;border:1px solid transparent}
+.cat-item:hover{background:var(--surf);border-color:var(--border)}
+.cat-item.selected{background:var(--ydim);border-color:var(--yellow);color:var(--yellow)}
+.cat-item .arrow{font-size:10px;color:var(--muted);flex-shrink:0}
+.cat-loading{padding:20px;text-align:center;color:var(--muted);font-size:12px}
+.cat-error{padding:14px;font-size:11px;color:var(--red);background:#FF4D4D11;border:1px solid #FF4D4D33;border-radius:8px;line-height:1.5}
+.btn-garimpar{width:100%;background:var(--yellow);color:#0D0D0D;border:none;border-radius:8px;padding:13px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:.5px;transition:opacity .15s;margin-top:16px}
+.btn-garimpar:hover{opacity:.88}
+.btn-garimpar:disabled{opacity:.35;cursor:not-allowed}
+.selected-path{margin-top:12px;padding:10px 12px;background:var(--surf);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6}
+.selected-path b{color:var(--text);display:block;margin-bottom:2px;font-size:12px}
+.filter-section{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+.filter-group{margin-bottom:12px}
+.filter-group label{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.filter-group select,.filter-group input[type=number]{width:100%;background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);outline:none;transition:border-color .2s;appearance:none}
+.filter-group select:focus,.filter-group input[type=number]:focus{border-color:var(--yellow)}
+.filter-group select option{background:#1E1E1E}
+.filter-range{display:flex;gap:6px;align-items:center}
+.filter-range input{flex:1}
+.filter-range span{color:var(--muted);font-size:11px}
+#status-bar{padding:8px 28px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);min-height:32px;display:flex;align-items:center;gap:8px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.dot.active{background:var(--green);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+#results{padding:24px 28px;overflow-y:auto}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px}
+.stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.stat-value{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text)}
+.stat-value.green{color:var(--green)}
+.stat-value.yellow{color:var(--yellow)}
+.stat-value.orange{color:var(--orange)}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.section-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px}
+.product-card{background:var(--surf);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s}
+.product-card:hover{border-color:var(--border2)}
+.product-card.hot{border-color:var(--green)}
+.card-header{padding:14px 16px 10px;display:flex;align-items:flex-start;gap:12px}
+.score-badge{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;flex-shrink:0}
+.score-high{background:#00E5A022;color:var(--green)}
+.score-mid{background:#FF8C4222;color:var(--orange)}
+.score-low{background:#FF4D4D22;color:var(--red)}
+.card-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;flex:1}
+.card-body{padding:0 16px 12px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.metric{background:var(--surf2);border-radius:6px;padding:7px 9px}
+.metric-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.metric-value{font-size:12px;color:var(--text)}
+.metric-value.green{color:var(--green)}
+.metric-value.yellow{color:var(--yellow)}
+.metric-value.red{color:var(--red)}
+.card-tags{padding:0 16px 9px;display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:9px;padding:2px 7px;border-radius:20px;border:1px solid var(--border);color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.tag.green{border-color:#00E5A044;color:var(--green)}
+.tag.orange{border-color:#FF8C4244;color:var(--orange)}
+.tag.red{border-color:#FF4D4D44;color:var(--red)}
+.card-insight{margin:0 16px 9px;padding:9px 12px;background:var(--ydim);border-left:2px solid var(--yellow);font-size:11px;color:#c8b800;line-height:1.5}
+.card-insight.action{background:#00E5A011;border-color:var(--green);color:#00b880}
+.card-link{display:block;margin:0 16px 14px;padding:7px;text-align:center;border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--muted);text-decoration:none;transition:all .15s}
+.card-link:hover{border-color:var(--blue);color:var(--blue)}
+.ai-box{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:22px;white-space:pre-wrap;font-size:13px;line-height:1.7;color:var(--text)}
+.ai-box h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--yellow);margin-bottom:10px}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state .big{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--surf2);margin-bottom:14px}
+.empty-state p{font-size:13px;line-height:1.9}
+.empty-hint{display:inline-block;margin-top:12px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--muted)}
+.info-box{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:18px;font-size:13px;color:var(--muted);margin-bottom:18px;text-align:center;line-height:1.7}
+.error-msg{background:#FF4D4D11;border:1px solid var(--red);border-radius:8px;padding:14px 16px;color:var(--red);font-size:13px;margin-bottom:18px}
+@media(max-width:700px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{border-right:none;border-bottom:1px solid var(--border)}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">
+    <svg viewBox="0 0 20 20" fill="none">
+      <circle cx="8.5" cy="8.5" r="5" stroke="#0D0D0D" stroke-width="2.2"/>
+      <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="#0D0D0D" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <h1>Garimpeiro</h1>
+  <span class="badge" id="auth-badge">conectando...</span>
+</header>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-title">Navegar categorias</div>
+    <div class="breadcrumb" id="breadcrumb"></div>
+    <div class="cat-list" id="cat-list">
+      <div class="cat-loading">Carregando categorias...</div>
+    </div>
+    <div class="selected-path" id="selected-path" style="display:none">
+      <b id="selected-label">—</b>
+      <span id="selected-id" style="font-size:10px;opacity:.5"></span>
+    </div>
+    <button class="btn-garimpar" id="btn-garimpar" disabled onclick="runSearch()">
+      Garimpar nesta categoria
+    </button>
+    <div class="filter-section">
+      <div class="sidebar-title">Filtros</div>
+      <div class="filter-group">
+        <label>Faixa de preço (R$)</label>
+        <div class="filter-range">
+          <input type="number" id="f-preco-min" value="50" placeholder="Mín">
+          <span>até</span>
+          <input type="number" id="f-preco-max" value="200" placeholder="Máx">
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Tamanho do produto</label>
+        <select id="f-tamanho">
+          <option value="">Qualquer tamanho</option>
+          <option value="Pequeno" selected>Pequeno — caixa de sapato</option>
+          <option value="Médio">Médio — mochila</option>
+          <option value="Grande">Grande — móveis, eletros</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Vendas mínimas</label>
+        <select id="f-vendas-min">
+          <option value="0">Qualquer quantidade</option>
+          <option value="10">Acima de 10</option>
+          <option value="50" selected>Acima de 50</option>
+          <option value="100">Acima de 100</option>
+          <option value="500">Acima de 500</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Concorrência desejada</label>
+        <select id="f-concorrencia">
+          <option value="">Qualquer nível</option>
+          <option value="Baixa" selected>Baixa — espaço para entrar</option>
+          <option value="Média">Média</option>
+          <option value="Alta">Alta</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Score mínimo</label>
+        <select id="f-score-min">
+          <option value="0">Qualquer</option>
+          <option value="50">50+</option>
+          <option value="65" selected>65+</option>
+          <option value="80">80+</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column">
+    <div id="status-bar">
+      <span class="dot" id="dot"></span>
+      <span id="status-text">Escolha uma categoria ao lado para começar.</span>
+    </div>
+    <div id="results">
+      <div class="empty-state">
+        <div class="big">⛏</div>
+        <p>Navegue pelas categorias do Mercado Livre<br>
+        e clique em <b style="color:var(--text)">Garimpar nesta categoria</b><br>
+        quando encontrar onde quer buscar oportunidades.</p>
+        <span class="empty-hint">Você pode ir até a subcategoria mais específica</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let mlToken = null;
+
+// Todas as chamadas para o ML passam pelo proxy /api/ml
+function mlFetch(mlUrl, token) {
+  const headers = {'Accept':'application/json'};
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  return fetch('/api/ml?url=' + encodeURIComponent(mlUrl), {
+    headers,
+    credentials: 'include'
+  });
+}
+
+async function getMLToken() {
+  if (mlToken) return mlToken;
+  try {
+    // Busca token do cookie via servidor
+    const res = await fetch('/api/ml?action=token');
+    if (res.ok) {
+      const d = await res.json();
+      if (d.access_token) { mlToken = d.access_token; return mlToken; }
+    }
+  } catch(e) {}
+  return null;
+}
+
+async function generatePKCE() {
+  const verifier = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  return { verifier, challenge };
+}
+
+async function getAuthUrl() {
+  const { verifier, challenge } = await generatePKCE();
+  // Passa o verifier diretamente no state (URL-safe base64)
+  const state = btoa(verifier).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  return 'https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=2934667583955420&redirect_uri=' + encodeURIComponent('https://garimpeiro-git-main-marcola93s-projects.vercel.app/api/callback') + '&code_challenge=' + challenge + '&code_challenge_method=S256&state=' + state;
+}
+
+(async () => {
+  const badge = document.getElementById('auth-badge');
+  
+  // Check for auth success/error in URL
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('auth') === 'success') {
+    history.replaceState({}, '', '/garimpeiro.html');
+  }
+
+  await getMLToken();
+  if (mlToken) {
+    badge.textContent = 'Conectado ✓';
+    badge.style.cssText = 'margin-left:auto;font-size:10px;border:1px solid #00E5A0;border-radius:4px;padding:2px 8px;letter-spacing:1px;text-transform:uppercase;background:#00E5A011;color:#00E5A0;cursor:default';
+  } else {
+    badge.textContent = 'Autorizar acesso';
+    badge.style.cssText = 'margin-left:auto;font-size:10px;border:1px solid #FFE600;border-radius:4px;padding:2px 8px;letter-spacing:1px;text-transform:uppercase;background:#FFE60022;color:#FFE600;cursor:pointer';
+    badge.onclick = async () => window.location.href = await getAuthUrl();
+    
+    // Show auth prompt in results
+    document.getElementById('results').innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--muted)"><div style="font-family:Syne,sans-serif;font-size:34px;font-weight:800;color:#2A2A2A;margin-bottom:14px">🔐</div><p style="font-size:13px;line-height:1.9;margin-bottom:20px">Para buscar produtos no Mercado Livre,<br>você precisa autorizar o Garimpeiro<br>com sua conta ML uma única vez.</p><button onclick="getAuthUrl().then(url => window.location.href=url)" style="background:var(--yellow);color:#0D0D0D;border:none;border-radius:8px;padding:12px 28px;font-family:Syne,sans-serif;font-size:14px;font-weight:800;cursor:pointer">Autorizar com Mercado Livre</button></div>';
+  }
+  loadRootCategories();
+})();
+
+let navStack = [];
+let selectedCat = null;
+
+async function loadRootCategories() {
+  const list = document.getElementById('cat-list');
+  list.innerHTML = '<div class="cat-loading">Carregando...</div>';
+  try {
+    const token = await getMLToken();
+    const res = await mlFetch('https://api.mercadolibre.com/sites/MLB/categories', token);
+    if (!res.ok) throw new Error('status ' + res.status);
+    const cats = await res.json();
+    renderCatList(cats, false, null);
+  } catch(e) {
+    list.innerHTML = '<div class="cat-error">Erro ao carregar categorias.<br>' + e.message + '</div>';
+  }
+}
+
+async function loadSubcategories(catId, catName) {
+  const list = document.getElementById('cat-list');
+  list.innerHTML = '<div class="cat-loading">Carregando subcategorias...</div>';
+  try {
+    const token = await getMLToken();
+    const res = await mlFetch('https://api.mercadolibre.com/categories/' + catId, token);
+    if (!res.ok) throw new Error('status ' + res.status);
+    const data = await res.json();
+    const children = data.children_categories || [];
+    renderCatList(children, true, {id: catId, name: catName});
+  } catch(e) {
+    list.innerHTML = '<div class="cat-error">Erro ao carregar subcategorias.<br>' + e.message + '</div>';
+  }
+}
+
+function renderCatList(cats, hasParent, parentCat) {
+  const list = document.getElementById('cat-list');
+  list.innerHTML = '';
+
+  if (hasParent && parentCat) {
+    setSelectedCat(parentCat);
+    const selfItem = document.createElement('div');
+    selfItem.className = 'cat-item selected';
+    selfItem.style.marginBottom = '6px';
+    selfItem.innerHTML = '<span style="font-size:11px">Garimpar em toda esta categoria</span>';
+    selfItem.onclick = () => setSelectedCat(parentCat);
+    list.appendChild(selfItem);
+
+    if (cats.length > 0) {
+      const divider = document.createElement('div');
+      divider.style.cssText = 'font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:8px 4px 6px';
+      divider.textContent = 'Ou escolha uma subcategoria';
+      list.appendChild(divider);
+    } else {
+      const msg = document.createElement('div');
+      msg.style.cssText = 'font-size:11px;color:var(--muted);padding:12px;text-align:center;line-height:1.6';
+      msg.textContent = 'Nenhuma subcategoria. Clique em "Garimpar nesta categoria".';
+      list.appendChild(msg);
+      return;
+    }
+  }
+
+  cats.forEach(cat => {
+    const item = document.createElement('div');
+    item.className = 'cat-item';
+    item.innerHTML = '<span>' + cat.name + '</span><span class="arrow">▶</span>';
+    item.onclick = () => {
+      navStack.push({id: cat.id, name: cat.name});
+      updateBreadcrumb();
+      loadSubcategories(cat.id, cat.name);
+    };
+    list.appendChild(item);
+  });
+}
+
+function setSelectedCat(cat) {
+  selectedCat = cat;
+  document.getElementById('selected-path').style.display = 'block';
+  document.getElementById('selected-label').textContent = cat.name;
+  document.getElementById('selected-id').textContent = cat.id;
+  const btn = document.getElementById('btn-garimpar');
+  btn.disabled = false;
+  btn.textContent = 'Garimpar em: ' + cat.name;
+}
+
+function updateBreadcrumb() {
+  const bc = document.getElementById('breadcrumb');
+  bc.innerHTML = '';
+  const root = document.createElement('span');
+  root.className = 'bc-item';
+  root.textContent = 'Início';
+  root.onclick = () => {
+    navStack = [];
+    selectedCat = null;
+    document.getElementById('selected-path').style.display = 'none';
+    const btn = document.getElementById('btn-garimpar');
+    btn.disabled = true;
+    btn.textContent = 'Garimpar nesta categoria';
+    updateBreadcrumb();
+    loadRootCategories();
+  };
+  bc.appendChild(root);
+
+  navStack.forEach((item, i) => {
+    const sep = document.createElement('span');
+    sep.className = 'bc-sep';
+    sep.textContent = '›';
+    bc.appendChild(sep);
+    const el = document.createElement('span');
+    const isLast = i === navStack.length - 1;
+    el.className = isLast ? 'bc-current' : 'bc-item';
+    el.textContent = item.name;
+    if (!isLast) {
+      el.onclick = () => {
+        navStack = navStack.slice(0, i + 1);
+        updateBreadcrumb();
+        loadSubcategories(navStack[i].id, navStack[i].name);
+      };
+    }
+    bc.appendChild(el);
+  });
+}
+
+function getFilters() {
+  return {
+    precoMin: parseFloat(document.getElementById('f-preco-min').value) || 0,
+    precoMax: parseFloat(document.getElementById('f-preco-max').value) || 999999,
+    tamanho: document.getElementById('f-tamanho').value,
+    vendasMin: parseInt(document.getElementById('f-vendas-min').value) || 0,
+    concorrencia: document.getElementById('f-concorrencia').value,
+    scoreMin: parseInt(document.getElementById('f-score-min').value) || 0,
+  };
+}
+
+function setStatus(msg, active) {
+  document.getElementById('status-text').textContent = msg;
+  document.getElementById('dot').className = 'dot' + (active ? ' active' : '');
+}
+
+function scoreColor(s) { return s >= 70 ? 'high' : s >= 45 ? 'mid' : 'low'; }
+function formatBRL(n) { return 'R$ ' + Number(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+async function fetchMLByCategory(catId, filters) {
+  const token = await getMLToken();
+
+  const hlRes = await mlFetch('https://api.mercadolibre.com/highlights/MLB/category/' + catId, token);
+  if (!hlRes.ok) throw new Error('Erro ao buscar highlights: ' + hlRes.status);
+  const hlData = await hlRes.json();
+  const allIds = (hlData.content || []).map(i => i.id);
+  if (allIds.length === 0) throw new Error('Nenhum produto em destaque nesta categoria.');
+  // Separa IDs de catálogo (MLB curto e MLBU) de IDs de itens diretos (MLB longo 10+ dígitos)
+  const catalogIds = allIds.filter(id => id.startsWith('MLBU') || (id.startsWith('MLB') && id.replace('MLB','').length <= 9));
+  const itemIds = allIds.filter(id => id.startsWith('MLB') && id.replace('MLB','').length > 9);
+
+  // Busca itens diretos via multiget (IDs longos MLB)
+  let directItems = [];
+  if (itemIds.length > 0) {
+    try {
+      const multiRes = await mlFetch('https://api.mercadolibre.com/items?ids=' + itemIds.slice(0,20).join(','), token);
+      if (multiRes.ok) {
+        const multiData = await multiRes.json();
+        directItems = multiData.filter(d => d.code === 200 && d.body).map(d => ({
+          id: d.body.id,
+          title: d.body.title,
+          price: d.body.price,
+          price_min: d.body.price,
+          price_max: d.body.price,
+          sold_quantity: d.body.sold_quantity || 0,
+          condition: d.body.condition,
+          seller: { id: d.body.seller_id },
+          seller_info: null,
+          num_sellers: 1,
+          has_free_shipping: d.body.shipping && d.body.shipping.free_shipping
+        }));
+      }
+    } catch(e) {}
+  }
+
+  // Busca produtos do catálogo (IDs curtos)
+  const productIds = catalogIds;
+  const itemsDetails = await Promise.all(productIds.slice(0, 20).map(async productId => {
+    try {
+      const iRes = await mlFetch('https://api.mercadolibre.com/products/' + productId + '/items?limit=50', token);
+      if (!iRes.ok) return null;
+      const iData = await iRes.json();
+      const items = (iData.results || []).filter(i => i.price > 0);
+      if (items.length === 0) return null;
+
+      const prices = items.map(i => i.price);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      const avgPrice = prices.reduce((a,b) => a+b,0) / prices.length;
+      const cheapest = items.sort((a,b) => a.price - b.price)[0];
+
+      // Busca detalhes do produto (nome, thumbnail, data criação)
+      let productName = productId;
+      let thumbnail = null;
+      let dateCreated = null;
+      let attributes = [];
+      const isMLBU = productId.startsWith('MLBU');
+      if (!isMLBU) {
+        try {
+          const pRes = await mlFetch('https://api.mercadolibre.com/products/' + productId, token);
+          if (pRes.ok) {
+            const p = await pRes.json();
+            productName = p.name || productId;
+            thumbnail = p.pictures && p.pictures[0] && p.pictures[0].url;
+            dateCreated = p.date_created;
+            // Atributos relevantes — filtra os mais úteis
+            const skipIds = ['MODEL','PART_NUMBER','GTIN','EAN','ALPHANUMERIC_MODEL'];
+            attributes = (p.attributes || [])
+              .filter(a => a.value_name && !skipIds.includes(a.id))
+              .slice(0, 10)
+              .map(a => ({name: a.name, value: a.value_name}));
+          }
+        } catch(e) {}
+      } else {
+        // Para MLBU busca nome da categoria
+        try {
+          const cRes = await mlFetch('https://api.mercadolibre.com/categories/' + cheapest.category_id, token);
+          if (cRes.ok) { const c = await cRes.json(); productName = c.name + ' (variação)'; }
+        } catch(e) {}
+        // Thumbnail não disponível para MLBU — usa placeholder
+        thumbnail = null;
+      }
+
+      // Fulfillment = Full
+      const isFull = items.some(i => i.shipping && i.shipping.logistic_type === 'fulfillment');
+
+      // Calcular dias no ar e vendas/dia
+      const daysOnline = dateCreated ? Math.max(1, Math.floor((Date.now() - new Date(dateCreated)) / 86400000)) : null;
+
+      let seller_info = null;
+      try {
+        const sRes = await mlFetch('https://api.mercadolibre.com/users/' + cheapest.seller_id, token);
+        if (sRes.ok) {
+          const s = await sRes.json();
+          seller_info = {
+            nickname: s.nickname,
+            reputation: s.seller_reputation && s.seller_reputation.level_id,
+            transactions: s.seller_reputation && s.seller_reputation.transactions && s.seller_reputation.transactions.total,
+            positive_pct: s.seller_reputation && s.seller_reputation.transactions && s.seller_reputation.transactions.ratings && s.seller_reputation.transactions.ratings.positive
+          };
+        }
+      } catch(e) {}
+
+      return {
+        id: productId,
+        title: productName,
+        thumbnail,
+        date_created: dateCreated,
+        days_online: daysOnline,
+        attributes,
+        price: avgPrice,
+        price_min: minPrice,
+        price_max: maxPrice,
+        sold_quantity: 0,
+        condition: cheapest.condition || 'new',
+        seller: { id: cheapest.seller_id },
+        seller_info,
+        num_sellers: items.length,
+        has_free_shipping: cheapest.shipping && cheapest.shipping.free_shipping,
+        is_full: isFull
+      };
+    } catch(e) { return null; }
+  }));
+
+  let results = [...itemsDetails.filter(Boolean), ...directItems];
+
+  // Aplica filtros de preço e vendas
+  if (filters.precoMin > 0) results = results.filter(i => i.price >= filters.precoMin);
+  if (filters.precoMax < 999999) results = results.filter(i => i.price <= filters.precoMax);
+  if (filters.vendasMin > 0) results = results.filter(i => i.sold_quantity >= filters.vendasMin);
+
+  return { results };
+}
+
+async function runSearch() {
+  if (!selectedCat) return;
+  const filters = getFilters();
+  const btn = document.getElementById('btn-garimpar');
+  btn.disabled = true;
+  btn.textContent = 'Garimpando...';
+  const catPath = navStack.map(n => n.name).join(' › ') || selectedCat.name;
+  const results = document.getElementById('results');
+  results.innerHTML = '';
+  setStatus('Buscando em "' + selectedCat.name + '"...', true);
+
+  try {
+    const mlData = await fetchMLByCategory(selectedCat.id, filters);
+    const items = mlData.results || [];
+
+    if (!items.length) {
+      setStatus('Nenhum produto encontrado com esses filtros.', false);
+      results.innerHTML = '<div class="info-box">Nenhum produto encontrado em <b>' + selectedCat.name + '</b>.<br>Tente ampliar a faixa de preço ou reduzir as vendas mínimas.</div>';
+      btn.disabled = false;
+      btn.textContent = 'Garimpar em: ' + selectedCat.name;
+      return;
+    }
+
+    setStatus(items.length + ' produtos encontrados em "' + selectedCat.name + '".', false);
+
+    const prices = items.filter(i => i.price > 0).map(i => i.price);
+    const avg = prices.length ? prices.reduce((a,b) => a+b,0)/prices.length : 0;
+    const minP = prices.length ? Math.min(...prices) : 0;
+    const maxP = prices.length ? Math.max(...prices) : 0;
+    const totalSellers = items.reduce((a,b) => a+(b.num_sellers||1),0);
+    const avgSellers = items.length ? (totalSellers/items.length).toFixed(1) : 0;
+    const freeShipping = items.filter(i => i.has_free_shipping).length;
+
+    // Busca tendências em paralelo
+    let trends = [];
+    try {
+      const tRes = await mlFetch('https://api.mercadolibre.com/trends/MLB', token);
+      if (tRes.ok) { const tData = await tRes.json(); trends = tData.slice(0, 20); }
+    } catch(e) {}
+
+    let html = '<div style="font-size:11px;color:var(--muted);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">Categoria: <span style="color:var(--text)">' + catPath + '</span> &nbsp;·&nbsp; <span style="color:var(--yellow)">' + items.length + ' produtos em destaque</span></div>';
+
+    html += '<div class="summary-grid">';
+    html += '<div class="stat-card"><div class="stat-label">Produtos</div><div class="stat-value">' + items.length + '</div><div class="stat-sub">em destaque</div></div>';
+    html += '<div class="stat-card"><div class="stat-label">Preço médio</div><div class="stat-value yellow">' + formatBRL(avg) + '</div><div class="stat-sub">' + formatBRL(minP) + ' – ' + formatBRL(maxP) + '</div></div>';
+    html += '<div class="stat-card"><div class="stat-label">Média vendedores</div><div class="stat-value ' + (parseFloat(avgSellers) <= 2 ? 'green' : parseFloat(avgSellers) <= 5 ? 'orange' : 'red') + '">' + avgSellers + '</div><div class="stat-sub">por produto</div></div>';
+    html += '<div class="stat-card"><div class="stat-label">Frete grátis</div><div class="stat-value ' + (freeShipping > 0 ? 'green' : 'orange') + '">' + freeShipping + '</div><div class="stat-sub">de ' + items.length + ' produtos</div></div>';
+    html += '</div>';
+
+    // Painel de tendências
+    if (trends.length > 0) {
+      html += '<div style="margin-bottom:20px">';
+      html += '<div class="section-label">Tendências agora no ML</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
+      trends.forEach(t => {
+        const keyword = t.keyword || '';
+        const url = t.url || ('https://www.mercadolivre.com.br/jm/search?q=' + encodeURIComponent(keyword));
+        html += '<a href="' + url + '" target="_blank" style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);color:var(--muted);text-decoration:none;transition:all .15s;display:inline-block" onmouseover="this.style.borderColor='var(--yellow)';this.style.color='var(--yellow)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">' + keyword + '</a>';
+      });
+      html += '</div></div>';
+    }
+
+    // Sort controls
+    html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">';
+    html += '<span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Ordenar por:</span>';
+    html += '<select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-family:DM Mono,monospace;font-size:11px;color:var(--text);outline:none" onchange="sortAndRender()">';
+    html += '<option value="default">Destaque (padrão)</option>';
+    html += '<option value="price_asc">Preço: menor</option>';
+    html += '<option value="price_desc">Preço: maior</option>';
+    html += '<option value="sellers_asc">Menos vendedores</option>';
+    html += '<option value="sellers_desc">Mais vendedores</option>';
+    html += '<option value="days_asc">Mais recente</option>';
+    html += '<option value="days_desc">Mais antigo</option>';
+    html += '</select>';
+    html += '</div>';
+
+    html += '<div class="section-label">Produtos em destaque</div><div class="products-grid" id="products-grid"></div>';
+    results.innerHTML = html;
+
+    // Store items globally for sorting
+    window._garimpItems = items;
+    window._garimpFilters = filters;
+    window._garimpCat = selectedCat;
+    sortAndRender();
+  } catch(err) {
+    setStatus('Erro na análise.', false);
+    results.innerHTML = '<div class="error-msg"><b>Erro:</b> ' + err.message + '</div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Garimpar em: ' + selectedCat.name;
+}
+
+function sortAndRender() {
+  const items = window._garimpItems;
+  const filters = window._garimpFilters;
+  const selectedCat = window._garimpCat;
+  if (!items) return;
+
+  const sortVal = document.getElementById('sort-select') ? document.getElementById('sort-select').value : 'default';
+  let sorted = [...items];
+  if (sortVal === 'price_asc') sorted.sort((a,b) => (a.price_min||a.price) - (b.price_min||b.price));
+  else if (sortVal === 'price_desc') sorted.sort((a,b) => (b.price_max||b.price) - (a.price_max||a.price));
+  else if (sortVal === 'sellers_asc') sorted.sort((a,b) => (a.num_sellers||1) - (b.num_sellers||1));
+  else if (sortVal === 'sellers_desc') sorted.sort((a,b) => (b.num_sellers||1) - (a.num_sellers||1));
+  else if (sortVal === 'days_asc') sorted.sort((a,b) => (b.days_online||999) - (a.days_online||999));
+  else if (sortVal === 'days_desc') sorted.sort((a,b) => (a.days_online||999) - (b.days_online||999));
+
+  let html = '';
+  sorted.forEach(item => {
+    const repColor = !item.seller_info ? '' : item.seller_info.reputation === 'platinum' || item.seller_info.reputation === 'gold' ? 'red' : item.seller_info.reputation === 'silver' ? 'yellow' : 'green';
+    const sellersColor = (item.num_sellers||1) <= 2 ? 'green' : (item.num_sellers||1) <= 5 ? 'yellow' : 'red';
+    const freeTag = item.has_free_shipping ? '<span class="tag green">Frete grátis</span>' : '';
+    const fullTag = item.is_full ? '<span class="tag green">Full</span>' : '<span class="tag">Normal</span>';
+    const condTag = item.condition === 'new' ? '<span class="tag">Novo</span>' : '<span class="tag orange">Usado</span>';
+    const dentroFaixa = (item.price_min||item.price) <= filters.precoMax && (item.price_max||item.price) >= filters.precoMin;
+    const faixaTag = dentroFaixa ? '<span class="tag green">Na faixa</span>' : '<span class="tag">Fora da faixa</span>';
+    const daysText = item.days_online ? (item.days_online === 1 ? '1 dia' : item.days_online + ' dias') : '—';
+    const url = 'https://www.mercadolivre.com.br/jm/search?q=' + encodeURIComponent(item.title) + '&category=' + selectedCat.id;
+
+    html += '<div class="product-card ' + (dentroFaixa ? 'hot' : '') + '">';
+
+    // Imagem
+    html += '<div style="width:100%;height:160px;overflow:hidden;border-bottom:1px solid var(--border);background:var(--surf2);display:flex;align-items:center;justify-content:center">';
+    if (item.thumbnail) {
+      html += '<img src="' + item.thumbnail + '" alt="" style="width:100%;height:100%;object-fit:contain" loading="lazy">';
+    } else {
+      html += '<span style="font-size:32px;color:var(--muted)">📦</span>';
+    }
+    html += '</div>';
+
+    html += '<div class="card-header"><div class="card-title">' + item.title + '</div></div>';
+    html += '<div class="card-body">';
+    html += '<div class="metric"><div class="metric-label">Preço mín.</div><div class="metric-value yellow">' + formatBRL(item.price_min || item.price) + '</div></div>';
+    html += '<div class="metric"><div class="metric-label">Preço máx.</div><div class="metric-value">' + formatBRL(item.price_max || item.price) + '</div></div>';
+    html += '<div class="metric"><div class="metric-label">Vendedores</div><div class="metric-value ' + sellersColor + '">' + (item.num_sellers||1) + '</div></div>';
+    html += '<div class="metric"><div class="metric-label">Reputação</div><div class="metric-value ' + repColor + '">' + (item.seller_info && item.seller_info.reputation ? item.seller_info.reputation : '—') + '</div></div>';
+    html += '<div class="metric"><div class="metric-label">Tempo no ar</div><div class="metric-value">' + daysText + '</div></div>';
+    html += '<div class="metric"><div class="metric-label">Vendas/dia</div><div class="metric-value" style="color:var(--muted)">—</div></div>';
+    if (item.seller_info && item.seller_info.transactions) {
+      html += '<div class="metric"><div class="metric-label">Transações</div><div class="metric-value">' + Number(item.seller_info.transactions).toLocaleString('pt-BR') + '</div></div>';
+    }
+    if (item.seller_info && item.seller_info.positive_pct) {
+      html += '<div class="metric"><div class="metric-label">Avaliação</div><div class="metric-value green">' + (item.seller_info.positive_pct*100).toFixed(0) + '%</div></div>';
+    }
+    html += '</div>';
+    html += '<div class="card-tags">' + fullTag + freeTag + condTag + faixaTag + '</div>';
+    // Atributos do produto
+    if (item.attributes && item.attributes.length > 0) {
+      html += '<div style="padding:0 16px 12px;display:flex;flex-wrap:wrap;gap:4px">';
+      item.attributes.forEach(a => {
+        html += '<span style="font-size:9px;padding:2px 7px;border-radius:4px;background:var(--surf2);color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + a.name + ': ' + a.value + '">' + a.name + ': <span style="color:var(--text)">' + a.value + '</span></span>';
+      });
+      html += '</div>';
+    }
+    html += '<a class="card-link" href="' + url + '" target="_blank">Ver no Mercado Livre ↗</a>';
+    html += '</div>';
+  });
+
+  const grid = document.getElementById('products-grid');
+  if (grid) grid.innerHTML = html;
+}
+</script>
+</body>
+</html>
