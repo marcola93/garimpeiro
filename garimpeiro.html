@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garimpeiro — Oportunidades ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F7F6F3;
+  --white:#FFFFFF;
+  --surf:#FAFAF8;
+  --border:#E8E6E0;
+  --border2:#D4D0C8;
+  --text:#1A1916;
+  --text2:#4A4840;
+  --muted:#9A9690;
+  --accent:#FF6B35;
+  --accent-dim:#FF6B3512;
+  --green:#16A34A;
+  --green-dim:#16A34A12;
+  --red:#DC2626;
+  --red-dim:#DC262612;
+  --amber:#D97706;
+  --amber-dim:#D9770612;
+  --blue:#2563EB;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* HEADER */
+header{
+  padding:0 24px;height:56px;background:var(--white);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:100;
+  box-shadow:var(--shadow);
+}
+.logo-wrap{display:flex;align-items:center;gap:10px}
+.logo-mark{
+  width:32px;height:32px;background:var(--accent);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.logo-mark svg{width:16px;height:16px}
+.logo-name{font-weight:700;font-size:16px;letter-spacing:-.3px;color:var(--text)}
+.logo-sub{font-size:11px;color:var(--muted);margin-left:2px}
+.badge{
+  margin-left:auto;font-size:10px;font-weight:600;
+  border-radius:20px;padding:3px 10px;letter-spacing:.3px;
+}
+.badge-auth{background:var(--green-dim);color:var(--green);border:1px solid #16A34A33}
+.badge-unauth{background:var(--accent-dim);color:var(--accent);border:1px solid #FF6B3533;cursor:pointer}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 56px)}
+
+/* SIDEBAR */
+.sidebar{
+  background:var(--white);border-right:1px solid var(--border);
+  padding:0;display:flex;flex-direction:column;overflow-y:auto;
+  position:sticky;top:56px;height:calc(100vh - 56px);
+}
+.sidebar-section{padding:16px;border-bottom:1px solid var(--border)}
+.sidebar-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+
+/* BREADCRUMB */
+.breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:3px;min-height:18px;margin-bottom:10px}
+.bc-item{font-size:11px;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:4px;transition:color .15s}
+.bc-item:hover{color:var(--accent)}
+.bc-sep{font-size:11px;color:var(--border2)}
+.bc-current{font-size:11px;color:var(--text);font-weight:500}
+
+/* CATEGORY LIST */
+.cat-list{display:flex;flex-direction:column;gap:1px;flex:1;padding:6px 8px}
+.cat-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 10px;border-radius:6px;cursor:pointer;
+  font-size:13px;color:var(--text2);transition:all .12s;
+  border:1px solid transparent;
+}
+.cat-item:hover{background:var(--surf);color:var(--text)}
+.cat-item.selected{background:var(--accent-dim);border-color:#FF6B3533;color:var(--accent);font-weight:500}
+.cat-item .arrow{font-size:10px;color:var(--muted);flex-shrink:0}
+.cat-loading{padding:20px;text-align:center;color:var(--muted);font-size:12px}
+.cat-error{padding:12px;font-size:11px;color:var(--red);background:var(--red-dim);border:1px solid #DC262633;border-radius:6px;line-height:1.5;margin:8px}
+
+/* SELECTED + BUTTON */
+.selected-info{padding:12px 16px;background:var(--surf);border-bottom:1px solid var(--border)}
+.selected-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.selected-id{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+.btn-garimpar{
+  margin:12px 16px;width:calc(100% - 32px);
+  background:var(--accent);color:#fff;border:none;border-radius:8px;
+  padding:12px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .15s;
+  box-shadow:0 2px 8px rgba(255,107,53,.3);
+}
+.btn-garimpar:hover{background:#E55A28;transform:translateY(-1px);box-shadow:0 4px 12px rgba(255,107,53,.4)}
+.btn-garimpar:disabled{background:var(--border2);color:var(--muted);cursor:not-allowed;transform:none;box-shadow:none}
+
+/* FILTERS */
+.filter-group{margin-bottom:10px}
+.filter-group label{display:block;font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.5px;margin-bottom:4px;text-transform:uppercase}
+.filter-group select,.filter-group input[type=number]{
+  width:100%;background:var(--surf);border:1px solid var(--border);
+  border-radius:6px;padding:7px 10px;font-family:'Outfit',sans-serif;
+  font-size:12px;color:var(--text);outline:none;transition:border-color .15s;appearance:none;
+}
+.filter-group select:focus,.filter-group input[type=number]:focus{border-color:var(--accent)}
+.filter-range{display:flex;gap:6px;align-items:center}
+.filter-range input{flex:1}
+.filter-range span{color:var(--muted);font-size:11px}
+
+/* STATUS BAR */
+#status-bar{
+  padding:8px 20px;font-size:11px;color:var(--muted);
+  border-bottom:1px solid var(--border);min-height:32px;
+  display:flex;align-items:center;gap:8px;background:var(--white);
+}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.dot.active{background:var(--green);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* RESULTS */
+#results{padding:20px 24px;background:var(--bg)}
+
+/* SUMMARY */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:10px;padding:14px;box-shadow:var(--shadow);
+}
+.stat-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.stat-value{font-size:22px;font-weight:700;color:var(--text);line-height:1}
+.stat-value.green{color:var(--green)}
+.stat-value.amber{color:var(--amber)}
+.stat-value.red{color:var(--red)}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* SECTION LABEL */
+.section-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+
+/* PRODUCT CARDS */
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:24px}
+.product-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  transition:box-shadow .2s,border-color .2s,transform .15s;
+  box-shadow:var(--shadow);
+}
+.product-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--border2)}
+.product-card.hot{border-color:#16A34A55;box-shadow:0 0 0 2px #16A34A22,var(--shadow)}
+.product-card.trending{border-top:3px solid var(--red) !important}
+.product-card.hot.trending::before{content:'Oportunidade + Em alta' !important;background:linear-gradient(90deg,var(--green),var(--red))}
+.product-card.trending:not(.hot)::before{content:'Em alta agora';display:block;background:var(--red);color:#fff;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;text-align:center}
+.product-card.hot::before{
+  content:'Oportunidade';
+  display:block;background:var(--green);color:#fff;
+  font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:4px 12px;text-align:center;
+}
+
+/* CARD METRICS */
+.card-img{width:100%;height:150px;overflow:hidden;background:var(--surf);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border)}
+.card-img img{width:100%;height:100%;object-fit:contain}
+.card-body-wrap{padding:12px 14px}
+.card-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.metric{background:var(--surf);border-radius:6px;padding:7px 9px;border:1px solid var(--border)}
+.metric-label{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.metric-value{font-size:12px;font-weight:500;color:var(--text)}
+.metric-value.green{color:var(--green)}
+.metric-value.amber{color:var(--amber)}
+.metric-value.red{color:var(--red)}
+
+/* TAGS */
+.card-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.tag{font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;text-transform:uppercase;letter-spacing:.3px}
+.tag-default{background:var(--surf);color:var(--muted);border:1px solid var(--border)}
+.tag-green{background:var(--green-dim);color:var(--green);border:1px solid #16A34A33}
+.tag-amber{background:var(--amber-dim);color:var(--amber);border:1px solid #D9770633}
+.tag-red{background:var(--red-dim);color:var(--red);border:1px solid #DC262633}
+
+/* CARD LINK */
+.card-link{
+  display:block;padding:8px;text-align:center;
+  border:1px solid var(--border);border-radius:7px;
+  font-size:11px;font-weight:500;color:var(--accent);text-decoration:none;
+  transition:all .15s;margin-top:4px;
+}
+.card-link:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ATTRIBUTES */
+.card-attrs{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px}
+.attr-pill{
+  font-size:9px;padding:2px 7px;border-radius:4px;
+  background:var(--surf);border:1px solid var(--border);
+  color:var(--text2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.attr-pill span{color:var(--muted)}
+
+/* TRENDS */
+.trends-wrap{margin-bottom:20px}
+.trends-chips{display:flex;flex-wrap:wrap;gap:6px}
+.trend-chip{
+  font-size:11px;padding:5px 12px;border-radius:20px;
+  border:1px solid var(--border);color:var(--text2);text-decoration:none;
+  transition:all .15s;background:var(--white);
+  display:inline-flex;align-items:center;gap:4px;
+}
+.trend-chip::before{content:"🔥";font-size:10px}
+.trend-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px}
+.empty-icon{font-size:48px;margin-bottom:16px;opacity:.3}
+.empty-title{font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px}
+.empty-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:320px;margin:0 auto}
+.empty-steps{margin-top:24px;display:flex;flex-direction:column;gap:8px;max-width:280px;margin-left:auto;margin-right:auto}
+.empty-step{display:flex;align-items:center;gap:10px;text-align:left;padding:10px 14px;background:var(--white);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text2)}
+.step-num{width:22px;height:22px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+
+/* AUTH PROMPT */
+.auth-prompt{text-align:center;padding:48px 20px}
+.auth-icon{font-size:40px;margin-bottom:16px}
+.auth-title{font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px}
+.auth-desc{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6}
+.btn-auth{
+  display:inline-block;background:var(--accent);color:#fff;border:none;
+  border-radius:8px;padding:12px 28px;font-family:'Outfit',sans-serif;
+  font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;
+  box-shadow:0 2px 8px rgba(255,107,53,.3);transition:all .15s;
+}
+.btn-auth:hover{background:#E55A28;transform:translateY(-1px)}
+
+.info-box{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:13px;color:var(--muted);margin-bottom:16px;text-align:center;line-height:1.7}
+.error-msg{background:var(--red-dim);border:1px solid #DC262633;border-radius:8px;padding:12px 16px;color:var(--red);font-size:13px;margin-bottom:16px}
+
+/* SORT */
+.sort-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.sort-bar label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.sort-bar select{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-family:'Outfit',sans-serif;font-size:12px;color:var(--text);outline:none;cursor:pointer}
+.sort-bar select:focus{border-color:var(--accent)}
+
+/* SELECTION */
+.product-card.selected-card{outline:2px solid var(--accent);outline-offset:-2px}
+.btn-select{
+  display:block;margin:0 14px 14px;padding:7px;text-align:center;
+  border:1px solid var(--border);border-radius:7px;
+  font-size:11px;font-weight:600;color:var(--text2);
+  background:var(--surf);cursor:pointer;transition:all .15s;
+  font-family:'Outfit',sans-serif;
+}
+.btn-select:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.btn-select.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cart-btn{
+  display:flex;align-items:center;gap:8px;
+  background:var(--green);color:#fff;border:none;border-radius:8px;
+  padding:8px 16px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .15s;text-decoration:none;
+  box-shadow:0 2px 8px rgba(22,163,74,.3);
+}
+.cart-btn:hover{background:#15803d;transform:translateY(-1px)}
+.cart-count{
+  background:rgba(255,255,255,.3);border-radius:20px;
+  padding:1px 7px;font-size:11px;font-weight:700;
+}
+@media(max-width:700px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:relative;height:auto;top:0}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-mark">
+      <svg viewBox="0 0 20 20" fill="none">
+        <circle cx="8.5" cy="8.5" r="5" stroke="#fff" stroke-width="2.2"/>
+        <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="logo-name">Garimpeiro</span>
+    <span class="logo-sub">Oportunidades ML</span>
+  </div>
+  <span class="badge" id="auth-badge">conectando...</span>
+  <a id="cart-btn" class="cart-btn" href="/analise.html" style="display:none">
+    Analisar selecionados <span class="cart-count" id="cart-count">0</span>
+  </a>
+</header>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Categorias</div>
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <div class="cat-list" id="cat-list">
+        <div class="cat-loading">Carregando...</div>
+      </div>
+    </div>
+    <div class="selected-info" id="selected-path" style="display:none">
+      <div class="selected-name" id="selected-label">—</div>
+      <div class="selected-id" id="selected-id"></div>
+    </div>
+    <button class="btn-garimpar" id="btn-garimpar" disabled onclick="runSearch()">
+      Garimpar aqui
+    </button>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filtros</div>
+      <div class="filter-group">
+        <label>Faixa de preço (R$)</label>
+        <div class="filter-range">
+          <input type="number" id="f-preco-min" value="0" placeholder="Mín">
+          <span>–</span>
+          <input type="number" id="f-preco-max" value="999999" placeholder="Máx">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column">
+    <div id="status-bar">
+      <span class="dot" id="dot"></span>
+      <span id="status-text">Escolha uma categoria para começar.</span>
+    </div>
+    <div id="results">
+      <div id="trends-panel" style="display:none;padding:20px 24px 0"></div>
+      <div class="empty-state">
+        <div class="empty-icon">⛏</div>
+        <div class="empty-title">Pronto para garimpar</div>
+        <div class="empty-desc">Navegue pelas categorias ao lado e clique em <strong>Garimpar aqui</strong> para encontrar oportunidades de venda.</div>
+        <div class="empty-steps">
+          <div class="empty-step"><span class="step-num">1</span>Escolha uma categoria no menu lateral</div>
+          <div class="empty-step"><span class="step-num">2</span>Afunile até a subcategoria desejada</div>
+          <div class="empty-step"><span class="step-num">3</span>Clique em Garimpar aqui</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let mlToken = null;
+
+// Todas as chamadas para o ML passam pelo proxy /api/ml
+function mlFetch(mlUrl, token) {
+  const headers = {'Accept':'application/json'};
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  return fetch('/api/ml?url=' + encodeURIComponent(mlUrl), {
+    headers,
+    credentials: 'include'
+  });
+}
+
+async function getMLToken() {
+  if (mlToken) return mlToken;
+  try {
+    // Busca token do cookie via servidor
+    const res = await fetch('/api/ml?action=token');
+    if (res.ok) {
+      const d = await res.json();
+      if (d.access_token) { mlToken = d.access_token; return mlToken; }
+    }
+  } catch(e) {}
+  return null;
+}
+
+async function generatePKCE() {
+  const verifier = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  return { verifier, challenge };
+}
+
+async function getAuthUrl() {
+  const { verifier, challenge } = await generatePKCE();
+  // Passa o verifier diretamente no state (URL-safe base64)
+  const state = btoa(verifier).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  return 'https://auth.mercadolivre.com.br/authorization?response_type=code&client_id=2934667583955420&redirect_uri=' + encodeURIComponent('https://garimpeiro-git-main-marcola93s-projects.vercel.app/api/callback') + '&code_challenge=' + challenge + '&code_challenge_method=S256&state=' + state;
+}
+
+(async () => {
+  const badge = document.getElementById('auth-badge');
+  
+  // Check for auth success/error in URL
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('auth') === 'success') {
+    history.replaceState({}, '', '/garimpeiro.html');
+  }
+
+  await getMLToken();
+  if (mlToken) {
+    badge.textContent = 'Conectado ✓';
+    badge.className = 'badge badge-auth'; badge.textContent = 'Conectado ✓';
+  } else {
+    badge.textContent = 'Autorizar acesso';
+    badge.className = 'badge badge-unauth';
+    badge.onclick = async () => window.location.href = await getAuthUrl();
+    
+    // Show auth prompt in results
+    document.getElementById('results').innerHTML = '<div class="auth-prompt"><div class="auth-icon">🔐</div><div class="auth-title">Autorização necessária</div><div class="auth-desc">Para buscar produtos no Mercado Livre, autorize o Garimpeiro com sua conta ML. É rápido e feito uma única vez.</div><button class="btn-auth" onclick="getAuthUrl().then(url => window.location.href=url)">Autorizar com Mercado Livre →</button></div>';
+  }
+  loadRootCategories();
+  loadTrends();
+})();
+
+async function loadTrends() {
+  try {
+    const token = await getMLToken();
+    const res = await mlFetch('https://api.mercadolibre.com/trends/MLB', token);
+    if (!res.ok) return;
+    const data = await res.json();
+    const trends = data.slice(0, 20);
+    window._trends = trends;
+    renderTrendsPanel(trends);
+  } catch(e) {}
+}
+
+function renderTrendsPanel(trends) {
+  const container = document.getElementById('trends-panel');
+  if (!container || !trends || !trends.length) return;
+  let html = '<div class="section-label" style="margin-bottom:10px">🔥 Em alta agora no ML</div>';
+  html += '<div class="trends-chips">';
+  trends.forEach(t => {
+    const kw = t.keyword || '';
+    const url = t.url || ('https://www.mercadolivre.com.br/jm/search?q=' + encodeURIComponent(kw));
+    html += '<a href="' + url + '" target="_blank" class="trend-chip">' + kw + '</a>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+  container.style.display = 'block';
+}
+
+let navStack = [];
+let selectedCat = null;
+
+async function loadRootCategories() {
+  const list = document.getElementById('cat-list');
+  list.innerHTML = '<div class="cat-loading">Carregando...</div>';
+  try {
+    const token = await getMLToken();
+    const res = await mlFetch('https://api.mercadolibre.com/sites/MLB/categories', token);
+    if (!res.ok) throw new Error('status ' + res.status);
+    const cats = await res.json();
+    renderCatList(cats, false, null);
+  } catch(e) {
+    list.innerHTML = '<div class="cat-error">Erro ao carregar categorias.<br>' + e.message + '</div>';
+  }
+}
+
+async function loadSubcategories(catId, catName) {
+  const list = document.getElementById('cat-list');
+  list.innerHTML = '<div class="cat-loading">Carregando subcategorias...</div>';
+  try {
+    const token = await getMLToken();
+    const res = await mlFetch('https://api.mercadolibre.com/categories/' + catId, token);
+    if (!res.ok) throw new Error('status ' + res.status);
+    const data = await res.json();
+    const children = data.children_categories || [];
+    renderCatList(children, true, {id: catId, name: catName});
+  } catch(e) {
+    list.innerHTML = '<div class="cat-error">Erro ao carregar subcategorias.<br>' + e.message + '</div>';
+  }
+}
+
+function renderCatList(cats, hasParent, parentCat) {
+  const list = document.getElementById('cat-list');
+  list.innerHTML = '';
+
+  if (hasParent && parentCat) {
+    setSelectedCat(parentCat);
+    const selfItem = document.createElement('div');
+    selfItem.className = 'cat-item selected';
+    selfItem.style.marginBottom = '6px';
+    selfItem.innerHTML = '<span style="font-size:11px">Garimpar em toda esta categoria</span>';
+    selfItem.onclick = () => setSelectedCat(parentCat);
+    list.appendChild(selfItem);
+
+    if (cats.length > 0) {
+      const divider = document.createElement('div');
+      divider.style.cssText = 'font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:8px 4px 6px';
+      divider.textContent = 'Ou escolha uma subcategoria';
+      list.appendChild(divider);
+    } else {
+      const msg = document.createElement('div');
+      msg.style.cssText = 'font-size:11px;color:var(--muted);padding:12px;text-align:center;line-height:1.6';
+      msg.textContent = 'Nenhuma subcategoria. Clique em "Garimpar nesta categoria".';
+      list.appendChild(msg);
+      return;
+    }
+  }
+
+  cats.forEach(cat => {
+    const item = document.createElement('div');
+    item.className = 'cat-item';
+    item.innerHTML = '<span>' + cat.name + '</span><span class="arrow">▶</span>';
+    item.onclick = () => {
+      navStack.push({id: cat.id, name: cat.name});
+      updateBreadcrumb();
+      loadSubcategories(cat.id, cat.name);
+    };
+    list.appendChild(item);
+  });
+}
+
+function setSelectedCat(cat) {
+  selectedCat = cat;
+  document.getElementById('selected-path').style.display = 'block';
+  document.getElementById('selected-label').textContent = cat.name;
+  document.getElementById('selected-id').textContent = cat.id;
+  const btn = document.getElementById('btn-garimpar');
+  btn.disabled = false;
+  btn.textContent = 'Garimpar em: ' + cat.name;
+}
+
+function updateBreadcrumb() {
+  const bc = document.getElementById('breadcrumb');
+  bc.innerHTML = '';
+  const root = document.createElement('span');
+  root.className = 'bc-item';
+  root.textContent = 'Início';
+  root.onclick = () => {
+    navStack = [];
+    selectedCat = null;
+    document.getElementById('selected-path').style.display = 'none';
+    const btn = document.getElementById('btn-garimpar');
+    btn.disabled = true;
+    btn.textContent = 'Garimpar nesta categoria';
+    updateBreadcrumb();
+    loadRootCategories();
+  };
+  bc.appendChild(root);
+
+  navStack.forEach((item, i) => {
+    const sep = document.createElement('span');
+    sep.className = 'bc-sep';
+    sep.textContent = '›';
+    bc.appendChild(sep);
+    const el = document.createElement('span');
+    const isLast = i === navStack.length - 1;
+    el.className = isLast ? 'bc-current' : 'bc-item';
+    el.textContent = item.name;
+    if (!isLast) {
+      el.onclick = () => {
+        navStack = navStack.slice(0, i + 1);
+        updateBreadcrumb();
+        loadSubcategories(navStack[i].id, navStack[i].name);
+      };
+    }
+    bc.appendChild(el);
+  });
+}
+
+function getFilters() {
+  return {
+    precoMin: parseFloat(document.getElementById('f-preco-min').value) || 0,
+    precoMax: parseFloat(document.getElementById('f-preco-max').value) || 999999,
+    tamanho: '',
+    vendasMin: 0,
+    concorrencia: '',
+    scoreMin: 0,
+  };
+}
+
+function setStatus(msg, active) {
+  document.getElementById('status-text').textContent = msg;
+  document.getElementById('dot').className = 'dot' + (active ? ' active' : '');
+}
+
+function scoreColor(s) { return s >= 70 ? 'high' : s >= 45 ? 'mid' : 'low'; }
+function formatBRL(n) { return 'R$ ' + Number(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+async function fetchMLByCategory(catId, filters) {
+  const token = await getMLToken();
+
+  // Tenta highlights da categoria, sobe até encontrar ou esgotar a pilha
+  let hlData = null;
+  let usedCatId = catId;
+
+  const tryIds = [catId, ...navStack.slice().reverse().map(n => n.id)];
+  for (const tryId of tryIds) {
+    const hlRes = await mlFetch('https://api.mercadolibre.com/highlights/MLB/category/' + tryId, token);
+    if (hlRes.ok) {
+      const data = await hlRes.json();
+      if ((data.content || []).length > 0) {
+        hlData = data;
+        usedCatId = tryId;
+        if (tryId !== catId) {
+          setStatus('Highlights não disponíveis para esta subcategoria. Usando categoria superior...', true);
+        }
+        break;
+      }
+    }
+  }
+
+  if (!hlData) throw new Error('Nenhum produto em destaque encontrado. Tente uma categoria diferente.');
+  const allIds = (hlData.content || []).map(i => i.id);
+  if (allIds.length === 0) throw new Error('Nenhum produto em destaque nesta categoria.');
+  // Separa IDs de catálogo (MLB curto e MLBU) de IDs de itens diretos (MLB longo 10+ dígitos)
+  const catalogIds = allIds.filter(id => id.startsWith('MLBU') || (id.startsWith('MLB') && id.replace('MLB','').length <= 9));
+  const itemIds = allIds.filter(id => id.startsWith('MLB') && id.replace('MLB','').length > 9);
+
+  // Busca itens diretos via multiget (IDs longos MLB)
+  let directItems = [];
+  if (itemIds.length > 0) {
+    try {
+      const multiRes = await mlFetch('https://api.mercadolibre.com/items?ids=' + itemIds.slice(0,20).join(','), token);
+      if (multiRes.ok) {
+        const multiData = await multiRes.json();
+        directItems = multiData.filter(d => d.code === 200 && d.body).map(d => ({
+          id: d.body.id,
+          title: d.body.title,
+          price: d.body.price,
+          price_min: d.body.price,
+          price_max: d.body.price,
+          sold_quantity: d.body.sold_quantity || 0,
+          condition: d.body.condition,
+          seller: { id: d.body.seller_id },
+          seller_info: null,
+          num_sellers: 1,
+          has_free_shipping: d.body.shipping && d.body.shipping.free_shipping
+        }));
+      }
+    } catch(e) {}
+  }
+
+  // Busca produtos do catálogo (IDs curtos)
+  const productIds = catalogIds;
+  const itemsDetails = await Promise.all(productIds.slice(0, 20).map(async productId => {
+    try {
+      const iRes = await mlFetch('https://api.mercadolibre.com/products/' + productId + '/items?limit=50', token);
+      if (!iRes.ok) return null;
+      const iData = await iRes.json();
+      const items = (iData.results || []).filter(i => i.price > 0);
+      if (items.length === 0) return null;
+
+      const prices = items.map(i => i.price);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      const avgPrice = prices.reduce((a,b) => a+b,0) / prices.length;
+      const cheapest = items.sort((a,b) => a.price - b.price)[0];
+
+      // Busca detalhes do produto (nome, thumbnail, data criação)
+      let productName = productId;
+      let thumbnail = null;
+      let dateCreated = null;
+      let attributes = [];
+      const isMLBU = productId.startsWith('MLBU');
+      if (!isMLBU) {
+        try {
+          const pRes = await mlFetch('https://api.mercadolibre.com/products/' + productId, token);
+          if (pRes.ok) {
+            const p = await pRes.json();
+            productName = p.name || productId;
+            thumbnail = p.pictures && p.pictures[0] && p.pictures[0].url;
+            dateCreated = p.date_created;
+            // Atributos relevantes — filtra os mais úteis
+            const skipIds = ['MODEL','PART_NUMBER','GTIN','EAN','ALPHANUMERIC_MODEL'];
+            attributes = (p.attributes || [])
+              .filter(a => a.value_name && !skipIds.includes(a.id))
+              .slice(0, 10)
+              .map(a => ({name: a.name, value: a.value_name}));
+          }
+        } catch(e) {}
+      } else {
+        // Para MLBU busca nome da categoria
+        try {
+          const cRes = await mlFetch('https://api.mercadolibre.com/categories/' + cheapest.category_id, token);
+          if (cRes.ok) { const c = await cRes.json(); productName = c.name + ' (variação)'; }
+        } catch(e) {}
+        // Thumbnail não disponível para MLBU — usa placeholder
+        thumbnail = null;
+      }
+
+      // Fulfillment = Full
+      const isFull = items.some(i => i.shipping && i.shipping.logistic_type === 'fulfillment');
+
+      // Calcular dias no ar e vendas/dia
+      const daysOnline = dateCreated ? Math.max(1, Math.floor((Date.now() - new Date(dateCreated)) / 86400000)) : null;
+
+      let seller_info = null;
+      try {
+        const sRes = await mlFetch('https://api.mercadolibre.com/users/' + cheapest.seller_id, token);
+        if (sRes.ok) {
+          const s = await sRes.json();
+          seller_info = {
+            nickname: s.nickname,
+            reputation: s.seller_reputation && s.seller_reputation.level_id,
+            transactions: s.seller_reputation && s.seller_reputation.transactions && s.seller_reputation.transactions.total,
+            positive_pct: s.seller_reputation && s.seller_reputation.transactions && s.seller_reputation.transactions.ratings && s.seller_reputation.transactions.ratings.positive
+          };
+        }
+      } catch(e) {}
+
+      return {
+        id: productId,
+        title: productName,
+        thumbnail,
+        date_created: dateCreated,
+        days_online: daysOnline,
+        attributes,
+        price: avgPrice,
+        price_min: minPrice,
+        price_max: maxPrice,
+        sold_quantity: 0,
+        condition: cheapest.condition || 'new',
+        seller: { id: cheapest.seller_id },
+        seller_info,
+        num_sellers: items.length,
+        has_free_shipping: cheapest.shipping && cheapest.shipping.free_shipping,
+        is_full: isFull
+      };
+    } catch(e) { return null; }
+  }));
+
+  let results = [...itemsDetails.filter(Boolean), ...directItems];
+
+  // Aplica filtros de preço e vendas
+  if (filters.precoMin > 0) results = results.filter(i => i.price >= filters.precoMin);
+  if (filters.precoMax < 999999) results = results.filter(i => i.price <= filters.precoMax);
+  if (filters.vendasMin > 0) results = results.filter(i => i.sold_quantity >= filters.vendasMin);
+
+  return { results };
+}
+
+async function runSearch() {
+  if (!selectedCat) return;
+  const filters = getFilters();
+  const btn = document.getElementById('btn-garimpar');
+  btn.disabled = true;
+  btn.textContent = 'Garimpando...';
+  const catPath = navStack.map(n => n.name).join(' › ') || selectedCat.name;
+  const results = document.getElementById('results');
+  results.innerHTML = '';
+  setStatus('Buscando em "' + selectedCat.name + '"...', true);
+
+  try {
+    const mlData = await fetchMLByCategory(selectedCat.id, filters);
+    const items = mlData.results || [];
+
+    if (!items.length) {
+      setStatus('Nenhum produto encontrado com esses filtros.', false);
+      results.innerHTML = '<div class="info-box">Nenhum produto encontrado em <b>' + selectedCat.name + '</b>.<br>Tente ampliar a faixa de preço ou reduzir as vendas mínimas.</div>';
+      btn.disabled = false;
+      btn.textContent = 'Garimpar em: ' + selectedCat.name;
+      return;
+    }
+
+    setStatus(items.length + ' produtos encontrados em "' + selectedCat.name + '".', false);
+
+    const prices = items.filter(i => i.price > 0).map(i => i.price);
+    const avg = prices.length ? prices.reduce((a,b) => a+b,0)/prices.length : 0;
+    const minP = prices.length ? Math.min(...prices) : 0;
+    const maxP = prices.length ? Math.max(...prices) : 0;
+    const totalSellers = items.reduce((a,b) => a+(b.num_sellers||1),0);
+    const avgSellers = items.length ? (totalSellers/items.length).toFixed(1) : 0;
+    const freeShipping = items.filter(i => i.has_free_shipping).length;
+
+    // Busca tendências em paralelo
+    let trends = [];
+    try {
+      const tRes = await mlFetch('https://api.mercadolibre.com/trends/MLB', token);
+      if (tRes.ok) { const tData = await tRes.json(); trends = tData.slice(0, 20); }
+    } catch(e) {}
+
+    // Re-render trends panel after results
+    const trendsPanel = document.getElementById('trends-panel');
+    if (trendsPanel && window._trends) renderTrendsPanel(window._trends);
+
+    let html = '<div style="font-size:11px;color:var(--muted);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">Categoria: <span style="color:var(--text)">' + catPath + '</span> &nbsp;·&nbsp; <span style="color:var(--accent)">' + items.length + ' produtos em destaque</span></div>';
+
+    html += '<div class="summary-grid">';
+    html += '<div class="stat-card"><div class="stat-label">Produtos</div><div class="stat-value">' + items.length + '</div><div class="stat-sub">em destaque</div></div>';
+    html += '<div class="stat-card"><div class="stat-label">Preço médio</div><div class="stat-value yellow">' + formatBRL(avg) + '</div><div class="stat-sub">' + formatBRL(minP) + ' – ' + formatBRL(maxP) + '</div></div>';
+    html += '<div class="stat-card"><div class="stat-label">Média vendedores</div><div class="stat-value ' + (parseFloat(avgSellers) <= 2 ? 'green' : parseFloat(avgSellers) <= 5 ? 'amber' : 'red') + '">' + avgSellers + '</div><div class="stat-sub">por produto</div></div>';
+    html += '<div class="stat-card"><div class="stat-label">Frete grátis</div><div class="stat-value ' + (freeShipping > 0 ? 'green' : 'amber') + '">' + freeShipping + '</div><div class="stat-sub">de ' + items.length + ' produtos</div></div>';
+    html += '</div>';
+
+    // Painel de tendências
+    if (trends.length > 0) {
+      html += '<div style="margin-bottom:20px">';
+      html += '<div class="section-label">Tendências agora no ML</div>';
+      html += '<div class="trends-chips">';
+      trends.forEach(t => {
+        const keyword = t.keyword || '';
+        const url = t.url || ('https://www.mercadolivre.com.br/jm/search?q=' + encodeURIComponent(keyword));
+        html += '<a href="' + url + '" target="_blank" class="trend-chip">' + keyword + '</a>';
+      });
+      html += '</div></div>';
+    }
+
+    // Sort controls
+    html += '<div class="sort-bar">';
+    html += '<label>Ordenar por</label>';
+    html += '<select id="sort-select" onchange="sortAndRender()">';
+    html += '<option value="default">Destaque (padrão)</option>';
+    html += '<option value="price_asc">Preço: menor</option>';
+    html += '<option value="price_desc">Preço: maior</option>';
+    html += '<option value="sellers_asc">Menos vendedores</option>';
+    html += '<option value="sellers_desc">Mais vendedores</option>';
+    html += '<option value="days_asc">Mais recente</option>';
+    html += '<option value="days_desc">Mais antigo</option>';
+    html += '</select></div>';
+
+    html += '<div class="section-label">Produtos em destaque</div><div class="products-grid" id="products-grid"></div>';
+    results.innerHTML = html;
+
+    // Store items globally for sorting
+    window._garimpItems = items;
+    window._garimpFilters = filters;
+    window._garimpCat = selectedCat;
+    sortAndRender();
+  } catch(err) {
+    setStatus('Erro na análise.', false);
+    results.innerHTML = '<div class="error-msg"><b>Erro:</b> ' + err.message + '</div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Garimpar em: ' + selectedCat.name;
+}
+
+// ── Seleção de produtos ────────────────────────────────
+let selectedProducts = {};
+
+function toggleSelect(productId) {
+  const productData = (window._itemMap || {})[productId];
+  if (selectedProducts[productId]) {
+    delete selectedProducts[productId];
+  } else {
+    selectedProducts[productId] = productData || {id: productId};
+  }
+  updateCartBtn();
+  // Update button visual
+  const btn = document.getElementById('sel-' + productId);
+  if (btn) {
+    const count = Object.keys(selectedProducts).length;
+    btn.textContent = selectedProducts[productId] ? '✓ Selecionado' : 'Selecionar para análise';
+    btn.className = 'btn-select' + (selectedProducts[productId] ? ' selected' : '');
+  }
+  // Update card border
+  const card = document.getElementById('card-' + productId);
+  if (card) {
+    if (selectedProducts[productId]) card.classList.add('selected-card');
+    else card.classList.remove('selected-card');
+  }
+}
+
+function updateCartBtn() {
+  const count = Object.keys(selectedProducts).length;
+  const btn = document.getElementById('cart-btn');
+  const countEl = document.getElementById('cart-count');
+  if (btn) btn.style.display = count > 0 ? 'flex' : 'none';
+  if (countEl) countEl.textContent = count;
+  // Save to sessionStorage for analise.html
+  sessionStorage.setItem('garimpo_selecionados', JSON.stringify(Object.values(selectedProducts)));
+}
+
+function sortAndRender() {
+  const items = window._garimpItems;
+  const filters = window._garimpFilters;
+  const selectedCat = window._garimpCat;
+  if (!items) return;
+
+  const sortVal = document.getElementById('sort-select') ? document.getElementById('sort-select').value : 'default';
+  let sorted = [...items];
+  if (sortVal === 'price_asc') sorted.sort((a,b) => (a.price_min||a.price) - (b.price_min||b.price));
+  else if (sortVal === 'price_desc') sorted.sort((a,b) => (b.price_max||b.price) - (a.price_max||a.price));
+  else if (sortVal === 'sellers_asc') sorted.sort((a,b) => (a.num_sellers||1) - (b.num_sellers||1));
+  else if (sortVal === 'sellers_desc') sorted.sort((a,b) => (b.num_sellers||1) - (a.num_sellers||1));
+  else if (sortVal === 'days_asc') sorted.sort((a,b) => (b.days_online||999) - (a.days_online||999));
+  else if (sortVal === 'days_desc') sorted.sort((a,b) => (a.days_online||999) - (b.days_online||999));
+
+  let html = '';
+  sorted.forEach(item => {
+    const repColor = !item.seller_info ? '' : item.seller_info.reputation === 'platinum' || item.seller_info.reputation === 'gold' ? 'red' : item.seller_info.reputation === 'silver' ? 'yellow' : 'green';
+    const sellersColor = (item.num_sellers||1) <= 2 ? 'green' : (item.num_sellers||1) <= 5 ? 'amber' : 'red';
+    const freeTag = item.has_free_shipping ? '<span class="tag tag-green">Frete grátis</span>' : '';
+    const fullTag = item.is_full ? '<span class="tag tag-green">Full</span>' : '<span class="tag tag-default">Normal</span>';
+    const condTag = item.condition === 'new' ? '<span class="tag tag-default">Novo</span>' : '<span class="tag tag-amber">Usado</span>';
+    const dentroFaixa = (item.price_min||item.price) <= filters.precoMax && (item.price_max||item.price) >= filters.precoMin;
+    const faixaTag = dentroFaixa ? '<span class="tag tag-green">Na faixa</span>' : '<span class="tag tag-default">Fora da faixa</span>';
+
+    // Verifica se o produto está em tendência
+    const trends = window._trends || [];
+    const titleLower = (item.title || '').toLowerCase();
+    const matchedTrend = trends.find(t => {
+      const kw = (t.keyword || '').toLowerCase();
+      const words = kw.split(' ').filter(w => w.length > 3);
+      return words.some(w => titleLower.includes(w));
+    });
+    const trendTag = matchedTrend ? '<span class="tag tag-red" title="Tendência: ' + matchedTrend.keyword + '">🔥 Em alta</span>' : '';
+    const daysText = item.days_online ? (item.days_online === 1 ? '1 dia' : item.days_online + ' dias') : '—';
+    const url = 'https://www.mercadolivre.com.br/jm/search?q=' + encodeURIComponent(item.title) + '&category=' + selectedCat.id;
+
+    const isTrending = !!matchedTrend;
+    const cardId = item.id.replace(/[^a-zA-Z0-9]/g,'');
+    html += '<div class="product-card ' + (dentroFaixa ? 'hot' : '') + (isTrending ? ' trending' : '') + '" id="card-' + cardId + '">';
+
+    // Imagem
+    html += '<div class="card-img">';
+    if (item.thumbnail) {
+      html += '<img src="' + item.thumbnail + '" alt="" loading="lazy">';
+    } else {
+      html += '<span style="font-size:36px;opacity:.3">📦</span>';
+    }
+    html += '</div>';
+    html += '<div class="card-body-wrap">';
+
+    html += '<div class="card-title">' + item.title + '</div>';
+    html += '<div class="metrics-grid">';
+    html += '<div class="metric"><div class="metric-label">Preço mín.</div><div class="metric-value amber">' + formatBRL(item.price_min || item.price) + '</div></div>';
+    html += '<div class="metric"><div class="metric-label">Preço máx.</div><div class="metric-value">' + formatBRL(item.price_max || item.price) + '</div></div>';
+    html += '<div class="metric"><div class="metric-label">Vendedores</div><div class="metric-value ' + sellersColor + '">' + (item.num_sellers||1) + '</div></div>';
+    html += '<div class="metric"><div class="metric-label">Reputação</div><div class="metric-value ' + repColor + '">' + (item.seller_info && item.seller_info.reputation ? item.seller_info.reputation : '—') + '</div></div>';
+    html += '<div class="metric"><div class="metric-label">Tempo no ar</div><div class="metric-value">' + daysText + '</div></div>';
+    html += '<div class="metric"><div class="metric-label">Vendas/dia</div><div class="metric-value" style="color:var(--muted)">—</div></div>';
+    if (item.seller_info && item.seller_info.transactions) {
+      html += '<div class="metric"><div class="metric-label">Transações</div><div class="metric-value">' + Number(item.seller_info.transactions).toLocaleString('pt-BR') + '</div></div>';
+    }
+    if (item.seller_info && item.seller_info.positive_pct) {
+      html += '<div class="metric"><div class="metric-label">Avaliação</div><div class="metric-value green">' + (item.seller_info.positive_pct*100).toFixed(0) + '%</div></div>';
+    }
+    html += '</div>';
+    html += '</div>';
+    html += '<div class="card-tags">' + (trendTag ? trendTag + ' ' : '') + fullTag + freeTag + condTag + faixaTag + '</div>';
+    // Atributos do produto
+    if (item.attributes && item.attributes.length > 0) {
+      html += '<div class="card-attrs">';
+      item.attributes.forEach(a => {
+        html += '<span class="attr-pill" title="' + a.name + ': ' + a.value + '"><span>' + a.name + ':</span> ' + a.value + '</span>';
+      });
+      html += '</div>';
+    }
+    const isSelected = !!selectedProducts[item.id];
+    // Store item in global map for retrieval on click
+    window._itemMap = window._itemMap || {};
+    window._itemMap[item.id] = item;
+    html += '<button id="sel-' + cardId + '" class="btn-select' + (isSelected ? ' selected' : '') + '" onclick="toggleSelect('' + item.id + '')">' + (isSelected ? '✓ Selecionado' : 'Selecionar para análise') + '</button>';
+    html += '<a class="card-link" href="' + url + '" target="_blank">Ver no Mercado Livre →</a>';
+    html += '</div>';
+    html += '</div>';
+  });
+
+  const grid = document.getElementById('products-grid');
+  if (grid) grid.innerHTML = html;
+}
+</script>
+</body>
+</html>
