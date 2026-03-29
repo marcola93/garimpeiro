@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garimpeiro — Análise Financeira</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F7F6F3; --white:#FFFFFF; --surf:#FAFAF8;
+  --border:#E8E6E0; --border2:#D4D0C8;
+  --text:#1A1916; --text2:#4A4840; --muted:#9A9690;
+  --accent:#FF6B35; --accent-dim:#FF6B3512;
+  --green:#16A34A; --green-dim:#16A34A12;
+  --red:#DC2626; --red-dim:#DC262612;
+  --amber:#D97706; --amber-dim:#D9770612;
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:0 4px 6px rgba(0,0,0,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+header{
+  padding:0 24px;height:56px;background:var(--white);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:100;
+  box-shadow:var(--shadow);
+}
+.logo-wrap{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:16px;height:16px}
+.logo-name{font-weight:700;font-size:16px;color:var(--text)}
+.back-btn{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:7px;transition:all .15s}
+.back-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.main{display:grid;grid-template-columns:340px 1fr;gap:0;min-height:calc(100vh - 56px)}
+
+/* CONFIG PANEL */
+.config-panel{
+  background:var(--white);border-right:1px solid var(--border);
+  padding:20px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;
+}
+.config-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.config-section{margin-bottom:20px}
+.config-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px}
+
+.field{margin-bottom:10px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.field input,.field select{
+  width:100%;background:var(--surf);border:1px solid var(--border);
+  border-radius:7px;padding:8px 10px;font-family:'Outfit',sans-serif;
+  font-size:13px;color:var(--text);outline:none;transition:border-color .15s;
+}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.field .hint{font-size:10px;color:var(--muted);margin-top:3px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.input-prefix{position:relative}
+.input-prefix input{padding-left:28px}
+.input-prefix span{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted)}
+
+.btn-apply{
+  width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;
+  padding:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .15s;margin-top:4px;
+}
+.btn-apply:hover{background:#E55A28}
+
+.tax-info{background:var(--amber-dim);border:1px solid #D9770633;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--amber);line-height:1.5}
+
+/* RESULTS PANEL */
+.results-panel{padding:24px;background:var(--bg)}
+
+.empty-analise{text-align:center;padding:80px 20px;color:var(--muted)}
+.empty-analise .icon{font-size:48px;margin-bottom:16px;opacity:.3}
+.empty-analise h2{font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px}
+.empty-analise p{font-size:13px;line-height:1.7}
+
+/* PRODUCT ANALYSIS CARD */
+.analysis-card{
+  background:var(--white);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow);
+}
+.analysis-header{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;border-bottom:1px solid var(--border);
+}
+.analysis-img{
+  width:60px;height:60px;border-radius:8px;overflow:hidden;
+  background:var(--surf);flex-shrink:0;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+}
+.analysis-img img{width:100%;height:100%;object-fit:contain}
+.analysis-title{font-size:14px;font-weight:600;color:var(--text);flex:1;line-height:1.3}
+.analysis-price{font-size:18px;font-weight:700;color:var(--accent);white-space:nowrap}
+.analysis-price-label{font-size:10px;color:var(--muted);text-align:right}
+
+.analysis-body{padding:16px}
+
+/* FINANCIAL BREAKDOWN */
+.breakdown{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.breakdown-item{background:var(--surf);border:1px solid var(--border);border-radius:8px;padding:12px}
+.breakdown-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px}
+.breakdown-value{font-size:16px;font-weight:700;color:var(--text)}
+.breakdown-value.red{color:var(--red)}
+.breakdown-value.green{color:var(--green)}
+.breakdown-value.amber{color:var(--amber)}
+.breakdown-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* WATERFALL */
+.waterfall{margin-bottom:16px}
+.waterfall-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px}
+.waterfall-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;font-size:13px;border-radius:6px;margin-bottom:4px;
+}
+.waterfall-row.income{background:var(--green-dim);color:var(--green)}
+.waterfall-row.cost{background:var(--red-dim);color:var(--red)}
+.waterfall-row.result{background:var(--accent-dim);color:var(--accent);font-weight:700;font-size:14px;margin-top:8px;border:1px solid #FF6B3333}
+.waterfall-row.result.profit{background:var(--green-dim);color:var(--green);border-color:#16A34A33}
+.waterfall-row.result.loss{background:var(--red-dim);color:var(--red);border-color:#DC262633}
+.waterfall-label{display:flex;align-items:center;gap:6px}
+.waterfall-value{font-family:'JetBrains Mono',monospace;font-size:12px}
+
+/* PRICE INPUT in card */
+.price-input-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:10px 12px;background:var(--surf);border-radius:8px;border:1px solid var(--border)}
+.price-input-row label{font-size:12px;color:var(--text2);flex:1}
+.price-input-row input{width:110px;background:var(--white);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);outline:none;text-align:right}
+.price-input-row input:focus{border-color:var(--accent)}
+
+/* ML COMMISSION TABLE */
+.commission-note{font-size:11px;color:var(--muted);padding:8px 12px;background:var(--surf);border-radius:6px;margin-bottom:12px;line-height:1.5}
+
+.viability-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;
+  margin-bottom:12px;
+}
+.viability-badge.viable{background:var(--green-dim);color:var(--green);border:1px solid #16A34A33}
+.viability-badge.warning{background:var(--amber-dim);color:var(--amber);border:1px solid #D9770633}
+.viability-badge.unviable{background:var(--red-dim);color:var(--red);border:1px solid #DC262633}
+
+.btn-remove{
+  float:right;background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:18px;line-height:1;padding:0 4px;transition:color .15s;
+}
+.btn-remove:hover{color:var(--red)}
+
+@media(max-width:800px){
+  .main{grid-template-columns:1fr}
+  .config-panel{position:relative;height:auto;top:0}
+  .breakdown{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo-wrap" href="/garimpeiro.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 20 20" fill="none">
+        <circle cx="8.5" cy="8.5" r="5" stroke="#fff" stroke-width="2.2"/>
+        <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="logo-name">Garimpeiro</span>
+  </a>
+  <a href="/garimpeiro.html" class="back-btn">← Voltar ao Garimpo</a>
+</header>
+
+<div class="main">
+
+  <!-- CONFIG PANEL -->
+  <div class="config-panel">
+    <div class="config-title">⚙️ Configuração financeira</div>
+
+    <div class="tax-info">
+      Estes valores serão aplicados a todos os produtos selecionados. Você pode ajustar o preço de venda individualmente em cada card.
+    </div>
+
+    <div class="config-section">
+      <div class="config-section-title">Impostos</div>
+      <div class="field">
+        <label>Regime tributário</label>
+        <select id="cfg-regime">
+          <option value="simples">Simples Nacional</option>
+          <option value="mei">MEI</option>
+          <option value="pf">Pessoa Física</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Alíquota efetiva (%)</label>
+        <div class="input-prefix">
+          <input type="number" id="cfg-aliquota" value="6" min="0" max="100" step="0.1" placeholder="Ex: 6">
+          <span>%</span>
+        </div>
+        <div class="hint">Simples Nacional varia de 4% a 19,5% conforme faturamento e anexo</div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-section-title">Taxa do Mercado Livre</div>
+      <div class="field">
+        <label>Tipo de anúncio</label>
+        <select id="cfg-tipo-anuncio">
+          <option value="premium">Premium (16%–19%)</option>
+          <option value="classico">Clássico (11%–15%)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Comissão ML (%)</label>
+        <div class="input-prefix">
+          <input type="number" id="cfg-comissao" value="16" min="0" max="30" step="0.5" placeholder="Ex: 16">
+          <span>%</span>
+        </div>
+        <div class="hint">Varia por categoria. Consulte a tabela do ML para sua categoria.</div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-section-title">Custos fixos por venda</div>
+      <div class="field">
+        <label>Frete (R$) — quando pago por você</label>
+        <div class="input-prefix">
+          <input type="number" id="cfg-frete" value="0" min="0" step="0.50" placeholder="0,00">
+          <span>R$</span>
+        </div>
+        <div class="hint">Deixe 0 se o produto tem frete grátis pelo ML Full</div>
+      </div>
+      <div class="field">
+        <label>Embalagem (R$)</label>
+        <div class="input-prefix">
+          <input type="number" id="cfg-embalagem" value="2" min="0" step="0.50">
+          <span>R$</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Operação / mão de obra (R$)</label>
+        <div class="input-prefix">
+          <input type="number" id="cfg-operacao" value="5" min="0" step="0.50">
+          <span>R$</span>
+        </div>
+        <div class="hint">Custo por unidade vendida (separação, emissão NF, etc.)</div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-section-title">Margem desejada</div>
+      <div class="field">
+        <label>Margem mínima aceitável (%)</label>
+        <div class="input-prefix">
+          <input type="number" id="cfg-margem-min" value="20" min="0" max="100" step="1">
+          <span>%</span>
+        </div>
+        <div class="hint">Produtos abaixo dessa margem serão marcados como inviáveis</div>
+      </div>
+    </div>
+
+    <button class="btn-apply" onclick="recalcAll()">Recalcular todos</button>
+  </div>
+
+  <!-- RESULTS PANEL -->
+  <div class="results-panel" id="results-panel">
+    <div class="empty-analise">
+      <div class="icon">🛒</div>
+      <h2>Nenhum produto selecionado</h2>
+      <p>Volte ao Garimpeiro, selecione os produtos<br>que quer analisar e clique em "Analisar selecionados".</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Tabela de comissões do ML por tipo ─────────────────
+// Premium: ~16% padrão, Clássico: ~11% padrão
+// O usuário pode ajustar manualmente
+
+function getConfig() {
+  return {
+    aliquota: parseFloat(document.getElementById('cfg-aliquota').value) || 6,
+    comissao: parseFloat(document.getElementById('cfg-comissao').value) || 16,
+    frete: parseFloat(document.getElementById('cfg-frete').value) || 0,
+    embalagem: parseFloat(document.getElementById('cfg-embalagem').value) || 2,
+    operacao: parseFloat(document.getElementById('cfg-operacao').value) || 5,
+    margemMin: parseFloat(document.getElementById('cfg-margem-min').value) || 20,
+  };
+}
+
+function calcFinancial(precoVenda, custoProduto, cfg) {
+  const pv = parseFloat(precoVenda) || 0;
+  const cp = parseFloat(custoProduto) || 0;
+
+  const taxaML = pv * (cfg.comissao / 100);
+  const imposto = pv * (cfg.aliquota / 100);
+  const frete = cfg.frete;
+  const embalagem = cfg.embalagem;
+  const operacao = cfg.operacao;
+
+  const totalCustos = cp + taxaML + imposto + frete + embalagem + operacao;
+  const lucro = pv - totalCustos;
+  const margem = pv > 0 ? (lucro / pv) * 100 : 0;
+
+  return { pv, cp, taxaML, imposto, frete, embalagem, operacao, totalCustos, lucro, margem };
+}
+
+function fmt(n) {
+  return 'R$ ' + Math.abs(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function fmtPct(n) {
+  return n.toFixed(1) + '%';
+}
+
+function renderCard(item, cfg) {
+  const cardId = item.id.replace(/[^a-zA-Z0-9]/g,'');
+  const precoRef = item.price_min || item.price || 0;
+  const precoVenda = parseFloat(document.getElementById('pv-' + cardId)?.value || precoRef);
+  const custoProduto = parseFloat(document.getElementById('cp-' + cardId)?.value || 0);
+
+  const f = calcFinancial(precoVenda, custoProduto, cfg);
+  const viability = f.margem >= cfg.margemMin ? 'viable' : f.margem >= 0 ? 'warning' : 'unviable';
+  const viabilityLabel = viability === 'viable' ? '✓ Viável' : viability === 'warning' ? '⚠ Margem baixa' : '✗ Inviável';
+  const margemColor = viability === 'viable' ? 'green' : viability === 'warning' ? 'amber' : 'red';
+  const lucroColor = f.lucro >= 0 ? 'green' : 'red';
+
+  return `
+<div class="analysis-card" id="acard-${cardId}">
+  <div class="analysis-header">
+    <div class="analysis-img">
+      ${item.thumbnail ? `<img src="${item.thumbnail}" alt="">` : '<span style="font-size:24px;opacity:.3">📦</span>'}
+    </div>
+    <div style="flex:1">
+      <div class="analysis-title">${item.title}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px">
+        ${item.num_sellers || 1} vendedor(es) · ${item.is_full ? 'Full' : 'Normal'}
+        ${item.days_online ? ' · ' + item.days_online + ' dias no ar' : ''}
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div class="analysis-price">${fmt(item.price_min || item.price || 0)}</div>
+      <div class="analysis-price-label">menor preço atual</div>
+    </div>
+    <button class="btn-remove" onclick="removeProduct('${item.id}')" title="Remover">×</button>
+  </div>
+
+  <div class="analysis-body">
+
+    <!-- Preço de venda e custo -->
+    <div class="price-input-row">
+      <label>💰 Preço de venda (R$)</label>
+      <input type="number" id="pv-${cardId}" value="${precoVenda.toFixed(2)}" step="0.50" min="0"
+        onchange="recalcCard('${item.id}')" oninput="recalcCard('${item.id}')">
+    </div>
+    <div class="price-input-row">
+      <label>🏷 Custo de aquisição do produto (R$)</label>
+      <input type="number" id="cp-${cardId}" value="${custoProduto.toFixed(2)}" step="0.50" min="0"
+        onchange="recalcCard('${item.id}')" oninput="recalcCard('${item.id}')">
+    </div>
+
+    <!-- Viabilidade -->
+    <span class="viability-badge ${viability}">${viabilityLabel} · Margem: ${fmtPct(f.margem)}</span>
+
+    <!-- Breakdown -->
+    <div class="breakdown">
+      <div class="breakdown-item">
+        <div class="breakdown-label">Receita bruta</div>
+        <div class="breakdown-value green">${fmt(f.pv)}</div>
+        <div class="breakdown-sub">preço de venda</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-label">Total de custos</div>
+        <div class="breakdown-value red">${fmt(f.totalCustos)}</div>
+        <div class="breakdown-sub">todos os custos</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-label">Lucro líquido</div>
+        <div class="breakdown-value ${lucroColor}">${f.lucro >= 0 ? fmt(f.lucro) : '- ' + fmt(f.lucro)}</div>
+        <div class="breakdown-sub">por unidade vendida</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-label">Margem líquida</div>
+        <div class="breakdown-value ${margemColor}">${fmtPct(f.margem)}</div>
+        <div class="breakdown-sub">mínimo desejado: ${fmtPct(cfg.margemMin)}</div>
+      </div>
+    </div>
+
+    <!-- Waterfall -->
+    <div class="waterfall">
+      <div class="waterfall-title">Composição do resultado</div>
+      <div class="waterfall-row income">
+        <span class="waterfall-label">+ Receita de venda</span>
+        <span class="waterfall-value">${fmt(f.pv)}</span>
+      </div>
+      ${f.cp > 0 ? `<div class="waterfall-row cost"><span class="waterfall-label">− Custo do produto</span><span class="waterfall-value">${fmt(f.cp)}</span></div>` : ''}
+      <div class="waterfall-row cost">
+        <span class="waterfall-label">− Taxa ML (${fmtPct(cfg.comissao)})</span>
+        <span class="waterfall-value">${fmt(f.taxaML)}</span>
+      </div>
+      <div class="waterfall-row cost">
+        <span class="waterfall-label">− Imposto (${fmtPct(cfg.aliquota)} s/ receita)</span>
+        <span class="waterfall-value">${fmt(f.imposto)}</span>
+      </div>
+      ${f.frete > 0 ? `<div class="waterfall-row cost"><span class="waterfall-label">− Frete</span><span class="waterfall-value">${fmt(f.frete)}</span></div>` : ''}
+      <div class="waterfall-row cost">
+        <span class="waterfall-label">− Embalagem</span>
+        <span class="waterfall-value">${fmt(f.embalagem)}</span>
+      </div>
+      <div class="waterfall-row cost">
+        <span class="waterfall-label">− Operação</span>
+        <span class="waterfall-value">${fmt(f.operacao)}</span>
+      </div>
+      <div class="waterfall-row result ${f.lucro >= 0 ? 'profit' : 'loss'}">
+        <span class="waterfall-label">${f.lucro >= 0 ? '= Lucro líquido' : '= Prejuízo'}</span>
+        <span class="waterfall-value">${f.lucro >= 0 ? fmt(f.lucro) : '- ' + fmt(Math.abs(f.lucro))}</span>
+      </div>
+    </div>
+
+  </div>
+</div>`;
+}
+
+// ── State ────────────────────────────────────────────────
+let products = [];
+
+function loadProducts() {
+  try {
+    const raw = sessionStorage.getItem('garimpo_selecionados');
+    if (raw) products = JSON.parse(raw);
+  } catch(e) {}
+  renderAll();
+}
+
+function renderAll() {
+  const panel = document.getElementById('results-panel');
+  if (!products.length) {
+    panel.innerHTML = `<div class="empty-analise">
+      <div class="icon">🛒</div>
+      <h2>Nenhum produto selecionado</h2>
+      <p>Volte ao Garimpeiro, selecione os produtos<br>que quer analisar e clique em "Analisar selecionados".</p>
+      <a href="/garimpeiro.html" style="display:inline-block;margin-top:20px;padding:10px 20px;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none;font-weight:600">← Voltar ao Garimpo</a>
+    </div>`;
+    return;
+  }
+  const cfg = getConfig();
+  panel.innerHTML = `
+    <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">
+      ${products.length} produto${products.length > 1 ? 's' : ''} selecionado${products.length > 1 ? 's' : ''} para análise
+    </div>
+    ${products.map(p => renderCard(p, cfg)).join('')}
+  `;
+}
+
+function recalcCard(productId) {
+  const item = products.find(p => p.id === productId);
+  if (!item) return;
+  const cfg = getConfig();
+  const cardId = productId.replace(/[^a-zA-Z0-9]/g,'');
+  const cardEl = document.getElementById('acard-' + cardId);
+  if (cardEl) {
+    const pvVal = document.getElementById('pv-' + cardId)?.value;
+    const cpVal = document.getElementById('cp-' + cardId)?.value;
+    const newCard = document.createElement('div');
+    newCard.innerHTML = renderCard(item, cfg);
+    const newCardEl = newCard.firstElementChild;
+    cardEl.replaceWith(newCardEl);
+    // Restore values
+    const newPv = document.getElementById('pv-' + cardId);
+    const newCp = document.getElementById('cp-' + cardId);
+    if (newPv && pvVal) newPv.value = pvVal;
+    if (newCp && cpVal) newCp.value = cpVal;
+    // Re-trigger calc with restored values
+    if (pvVal || cpVal) {
+      const f = calcFinancial(pvVal, cpVal, cfg);
+      // Update viability badge
+      const badge = newCardEl.querySelector('.viability-badge');
+      const viability = f.margem >= cfg.margemMin ? 'viable' : f.margem >= 0 ? 'warning' : 'unviable';
+      const viabilityLabel = viability === 'viable' ? '✓ Viável' : viability === 'warning' ? '⚠ Margem baixa' : '✗ Inviável';
+      if (badge) {
+        badge.className = 'viability-badge ' + viability;
+        badge.textContent = viabilityLabel + ' · Margem: ' + fmtPct(f.margem);
+      }
+    }
+  }
+}
+
+function recalcAll() {
+  renderAll();
+}
+
+function removeProduct(productId) {
+  products = products.filter(p => p.id !== productId);
+  sessionStorage.setItem('garimpo_selecionados', JSON.stringify(products));
+  renderAll();
+}
+
+// Init
+loadProducts();
+</script>
+</body>
+</html>
