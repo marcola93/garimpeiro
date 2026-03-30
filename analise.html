@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garimpeiro — Análise Financeira</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F7F6F3;--white:#FFFFFF;--surf:#FAFAF8;
+  --border:#E8E6E0;--border2:#D4D0C8;
+  --text:#1A1916;--text2:#4A4840;--muted:#9A9690;
+  --accent:#FF6B35;--accent-dim:#FF6B3512;
+  --green:#16A34A;--green-dim:#16A34A12;
+  --red:#DC2626;--red-dim:#DC262612;
+  --amber:#D97706;--amber-dim:#D9770612;
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{padding:0 24px;height:56px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+.logo-wrap{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-mark svg{width:16px;height:16px}
+.logo-name{font-weight:700;font-size:16px;color:var(--text)}
+.back-btn{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:7px;transition:all .15s}
+.back-btn:hover{border-color:var(--accent);color:var(--accent)}
+.main{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 56px)}
+.config-panel{background:var(--white);border-right:1px solid var(--border);padding:16px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.config-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.config-section{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.config-section:last-of-type{border-bottom:none;margin-bottom:0}
+.config-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px}
+.field{margin-bottom:8px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:3px}
+.field input,.field select{width:100%;background:var(--surf);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.field .hint{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4}
+.input-prefix{position:relative}
+.input-prefix input{padding-left:28px}
+.input-prefix .prefix{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);pointer-events:none}
+.btn-apply{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-top:4px}
+.btn-apply:hover{background:#E55A28}
+.info-box{background:var(--amber-dim);border:1px solid #D9770633;border-radius:7px;padding:9px 11px;font-size:11px;color:var(--amber);line-height:1.5;margin-bottom:8px}
+.taxa-display{background:var(--surf);border:1px solid var(--border);border-radius:7px;padding:9px 11px;font-size:12px;color:var(--text2);margin-bottom:8px}
+.taxa-display b{color:var(--text);font-size:13px}
+.results-panel{padding:20px 24px;background:var(--bg)}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.results-title{font-size:14px;font-weight:600;color:var(--text)}
+.btn-clear{font-size:11px;color:var(--red);border:1px solid #DC262633;background:var(--red-dim);border-radius:6px;padding:4px 12px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s}
+.btn-clear:hover{background:var(--red);color:#fff}
+.empty-analise{text-align:center;padding:80px 20px}
+.empty-analise .icon{font-size:48px;margin-bottom:16px;opacity:.3}
+.empty-analise h2{font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px}
+.empty-analise p{font-size:13px;line-height:1.7;color:var(--muted)}
+.analysis-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
+.analysis-header{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.analysis-img{width:56px;height:56px;border-radius:8px;overflow:hidden;background:var(--surf);flex-shrink:0;border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+.analysis-img img{width:100%;height:100%;object-fit:contain}
+.analysis-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.3}
+.analysis-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.analysis-price{font-size:17px;font-weight:700;color:var(--accent);white-space:nowrap;text-align:right}
+.analysis-price-label{font-size:10px;color:var(--muted);text-align:right}
+.btn-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:0;transition:color .15s;flex-shrink:0}
+.btn-remove:hover{color:var(--red)}
+.analysis-body{padding:14px 16px}
+.inputs-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.input-card{background:var(--surf);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.input-card label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px}
+.input-card input{width:100%;background:var(--white);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--text);outline:none;text-align:right;transition:border-color .15s}
+.input-card input:focus{border-color:var(--accent)}
+.input-card .hint{font-size:10px;color:var(--muted);margin-top:4px}
+.custo-max-box{background:var(--green-dim);border:1px solid #16A34A33;border-radius:8px;padding:12px 14px;margin-bottom:12px}
+.custo-max-box.negative{background:var(--red-dim);border-color:#DC262633}
+.custo-max-label{font-size:11px;font-weight:600;margin-bottom:4px;color:var(--green)}
+.custo-max-box.negative .custo-max-label{color:var(--red)}
+.custo-max-value{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--green)}
+.custo-max-box.negative .custo-max-value{color:var(--red)}
+.custo-max-hint{font-size:10px;color:var(--muted);margin-top:3px}
+.taxa-ml-badge{display:inline-flex;align-items:center;gap:6px;background:var(--amber-dim);border:1px solid #D9770633;border-radius:6px;padding:5px 10px;font-size:11px;color:var(--amber);font-weight:600;margin-bottom:12px}
+.viability-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:12px}
+.viability-badge.viable{background:var(--green-dim);color:var(--green);border:1px solid #16A34A33}
+.viability-badge.warning{background:var(--amber-dim);color:var(--amber);border:1px solid #D9770633}
+.viability-badge.unviable{background:var(--red-dim);color:var(--red);border:1px solid #DC262633}
+.breakdown{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.breakdown-item{background:var(--surf);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.breakdown-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px}
+.breakdown-value{font-size:16px;font-weight:700;color:var(--text)}
+.breakdown-value.red{color:var(--red)}
+.breakdown-value.green{color:var(--green)}
+.breakdown-value.amber{color:var(--amber)}
+.breakdown-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.waterfall-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px}
+.waterfall-row{display:flex;align-items:center;justify-content:space-between;padding:7px 11px;font-size:12px;border-radius:6px;margin-bottom:3px}
+.waterfall-row.income{background:var(--green-dim);color:var(--green)}
+.waterfall-row.cost{background:var(--surf);color:var(--text2);border:1px solid var(--border)}
+.waterfall-row.result{font-weight:700;font-size:13px;margin-top:6px}
+.waterfall-row.result.profit{background:var(--green-dim);color:var(--green);border:1px solid #16A34A33}
+.waterfall-row.result.loss{background:var(--red-dim);color:var(--red);border:1px solid #DC262633}
+.waterfall-value{font-family:'JetBrains Mono',monospace;font-size:12px}
+@media(max-width:800px){.main{grid-template-columns:1fr}.config-panel{position:relative;height:auto;top:0}.breakdown{grid-template-columns:1fr}.inputs-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo-wrap" href="/garimpeiro.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 20 20" fill="none">
+        <circle cx="8.5" cy="8.5" r="5" stroke="#fff" stroke-width="2.2"/>
+        <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="logo-name">Garimpeiro</span>
+  </a>
+  <a href="/garimpeiro.html" class="back-btn">← Voltar ao Garimpo</a>
+</header>
+
+<div class="main">
+  <div class="config-panel">
+    <div class="config-title">⚙️ Configuração financeira</div>
+
+    <div class="config-section">
+      <div class="config-section-title">Imposto</div>
+      <div class="field">
+        <label>Regime tributário</label>
+        <select id="cfg-regime" onchange="saveConfig()">
+          <option value="simples">Simples Nacional</option>
+          <option value="mei">MEI</option>
+          <option value="pf">Pessoa Física</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Alíquota efetiva (%)</label>
+        <div class="input-prefix">
+          <input type="number" id="cfg-aliquota" value="6" min="0" max="100" step="0.1" oninput="saveConfig()">
+          <span class="prefix">%</span>
+        </div>
+        <div class="hint">Simples Nacional: 4% a 19,5% conforme faturamento e anexo</div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-section-title">Taxa Mercado Livre</div>
+      <div class="info-box">
+        Taxa ML = <b>% da categoria</b> + <b>R$ 6,00 fixo</b> por venda.<br>
+        Selecione a categoria abaixo para aplicar a taxa correta.
+      </div>
+      <div class="field">
+        <label>Tipo de anúncio</label>
+        <select id="cfg-tipo-anuncio" onchange="saveConfig();recalcAll()">
+          <option value="premium">Premium (Diamante)</option>
+          <option value="classico">Clássico (Ouro)</option>
+        </select>
+      </div>
+      <div class="info-box" style="margin-top:4px">
+        A taxa % é buscada automaticamente pela categoria de cada produto. R$ 6,00 sempre somado.
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-section-title">Custos por venda</div>
+      <div class="field">
+        <label>Embalagem (R$)</label>
+        <div class="input-prefix">
+          <input type="number" id="cfg-embalagem" value="2" min="0" step="0.50" oninput="saveConfig()">
+          <span class="prefix">R$</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Operação / mão de obra (R$)</label>
+        <div class="input-prefix">
+          <input type="number" id="cfg-operacao" value="5" min="0" step="0.50" oninput="saveConfig()">
+          <span class="prefix">R$</span>
+        </div>
+        <div class="hint">Separação, emissão NF, atendimento, etc.</div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-section-title">Margem desejada</div>
+      <div class="field">
+        <label>Margem líquida mínima (%)</label>
+        <div class="input-prefix">
+          <input type="number" id="cfg-margem-min" value="20" min="0" max="100" step="1" oninput="saveConfig()">
+          <span class="prefix">%</span>
+        </div>
+        <div class="hint">Produtos abaixo serão marcados como inviáveis</div>
+      </div>
+    </div>
+
+    <button class="btn-apply" onclick="recalcAll()">↺ Recalcular todos</button>
+  </div>
+
+  <div class="results-panel">
+    <div class="results-header">
+      <div class="results-title" id="results-title">Carregando...</div>
+      <button class="btn-clear" onclick="clearAll()">🗑 Limpar tudo</button>
+    </div>
+    <div id="results-panel"></div>
+  </div>
+</div>
+
+<script>
+
+// ── Tabela de taxas ML por categoria ─────────────────────────────────
+// Fonte: tabela oficial ML Brasil (% Premium; Clássico = % - 3pp, mín 6%)
+const ML_TAXAS = {
+  // Por category_id raiz do ML
+  'MLB5726':  { pct: 13, nome: 'Acessórios para Veículos' },
+  'MLB1071':  { pct: 13, nome: 'Agro' },
+  'MLB1700':  { pct: 13, nome: 'Animais e Mascotas' },
+  'MLB1648':  { pct: 11, nome: 'Arte, Papelaria e Armarinho' },
+  'MLB1384':  { pct: 13, nome: 'Bebês' },
+  'MLB1246':  { pct: 13, nome: 'Beleza e Cuidado Pessoal' },
+  'MLB1132':  { pct: 13, nome: 'Brinquedos e Hobbies' },
+  'MLB1430':  { pct: 13, nome: 'Calçados, Roupas e Bolsas' },
+  'MLB1039':  { pct: 13, nome: 'Câmeras e Acessórios' },
+  'MLB1574':  { pct: 13, nome: 'Casa, Móveis e Decoração' },
+  'MLB1051':  { pct: 13, nome: 'Celulares e Telefones' },
+  'MLB1648':  { pct: 13, nome: 'Computação' },
+  'MLB1000':  { pct: 13, nome: 'Construção' },
+  'MLB1574':  { pct: 13, nome: 'Eletrodomésticos' },
+  'MLB1000':  { pct: 13, nome: 'Eletrônicos, Áudio e Vídeo' },
+  'MLB1168':  { pct: 13, nome: 'Esportes e Fitness' },
+  'MLB1000':  { pct: 13, nome: 'Ferramentas' },
+  'MLB1144':  { pct: 11, nome: 'Games' },
+  'MLB1000':  { pct: 13, nome: 'Iluminação e Elétrica' },
+  'MLB1000':  { pct: 13, nome: 'Indústria e Comércio' },
+  'MLB3937':  { pct: 11, nome: 'Livros, Revistas e Comics' },
+  'MLB1196':  { pct: 13, nome: 'Música e Festivais' },
+  'MLB1246':  { pct: 13, nome: 'Saúde' },
+  'MLB1000':  { pct:  6, nome: 'Serviços' },
+};
+const ML_TAXA_PADRAO = { pct: 13, nome: 'categoria' };
+const ML_TAXA_FIXA = 6.00;
+
+function getTaxaParaProduto(item) {
+  const tipo = document.getElementById('cfg-tipo-anuncio').value;
+  // Tenta achar pela category_id
+  let taxa = ML_TAXA_PADRAO;
+  if (item.category_id) {
+    // Procura exato
+    if (ML_TAXAS[item.category_id]) taxa = ML_TAXAS[item.category_id];
+    else {
+      // Tenta pela raiz (primeiros 6 chars do category_id)
+      const raiz = item.category_id.substring(0, 6);
+      if (ML_TAXAS[raiz]) taxa = ML_TAXAS[raiz];
+    }
+  }
+  // Se tem category_name, usa nome real
+  const nome = item.category_name || taxa.nome;
+  const pct = tipo === 'classico' ? Math.max(taxa.pct - 3, 6) : taxa.pct;
+  return { pct, nome, fixo: ML_TAXA_FIXA };
+}
+
+function calcTaxaML(precoVenda, item) {
+  const t = getTaxaParaProduto(item);
+  const pctValor = precoVenda * (t.pct / 100);
+  return { valor: pctValor + t.fixo, pct: t.pct, fixo: t.fixo, nome: t.nome };
+}
+
+
+// ── Config persistida ─────────────────────────────────────────────────
+function saveConfig() {
+  const cfg = {
+    regime: document.getElementById('cfg-regime').value,
+    aliquota: document.getElementById('cfg-aliquota').value,
+    tipo: document.getElementById('cfg-tipo-anuncio').value,
+
+    embalagem: document.getElementById('cfg-embalagem').value,
+    operacao: document.getElementById('cfg-operacao').value,
+    margemMin: document.getElementById('cfg-margem-min').value,
+  };
+  localStorage.setItem('garimpo_config', JSON.stringify(cfg));
+  updateTaxaDisplay();
+}
+
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem('garimpo_config');
+    if (!raw) return;
+    const cfg = JSON.parse(raw);
+    if (cfg.regime) document.getElementById('cfg-regime').value = cfg.regime;
+    if (cfg.aliquota) document.getElementById('cfg-aliquota').value = cfg.aliquota;
+    if (cfg.tipo) document.getElementById('cfg-tipo-anuncio').value = cfg.tipo;
+    if (cfg.embalagem) document.getElementById('cfg-embalagem').value = cfg.embalagem;
+    if (cfg.operacao) document.getElementById('cfg-operacao').value = cfg.operacao;
+    if (cfg.margemMin) document.getElementById('cfg-margem-min').value = cfg.margemMin;
+  } catch(e) {}
+}
+
+function getConfig() {
+  return {
+    aliquota:  parseFloat(document.getElementById('cfg-aliquota').value)  || 6,
+    embalagem: parseFloat(document.getElementById('cfg-embalagem').value) || 0,
+    operacao:  parseFloat(document.getElementById('cfg-operacao').value)  || 0,
+    margemMin: parseFloat(document.getElementById('cfg-margem-min').value)|| 20,
+  };
+}
+
+// ── Cálculo financeiro ────────────────────────────────────────────────
+function calcFinancial(precoVenda, freteCard, cfg, item) {
+  const pv = parseFloat(precoVenda) || 0;
+  const frete = parseFloat(freteCard) || 0;
+  const taxaML = calcTaxaML(pv, item);
+  const imposto = pv * (cfg.aliquota / 100);
+  const totalFixos = taxaML.valor + imposto + frete + cfg.embalagem + cfg.operacao;
+  // Custo máximo = pv - totalFixos - margem desejada sobre pv
+  const custoMaximo = pv - totalFixos - (pv * cfg.margemMin / 100);
+  const lucroSemCusto = pv - totalFixos;
+  const margemSemCusto = pv > 0 ? (lucroSemCusto / pv) * 100 : 0;
+  return { pv, taxaML, imposto, frete, embalagem: cfg.embalagem, operacao: cfg.operacao, totalFixos, custoMaximo, lucroSemCusto, margemSemCusto };
+}
+
+function fmt(n) {
+  return 'R$ ' + Math.abs(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function fmtPct(n) { return n.toFixed(1) + '%'; }
+
+// ── Per-card frete state ──────────────────────────────────────────────
+let cardStates = {};
+function getCardFrete(id) { return (cardStates[id] || {}).frete || 0; }
+
+// ── Render card ───────────────────────────────────────────────────────
+function renderCard(item, cfg) {
+  const cardId = item.id.replace(/[^a-zA-Z0-9]/g,'');
+  const precoRef = item.price_min || item.price || 0;
+  const pvEl = document.getElementById('pv-' + cardId);
+  const precoVenda = pvEl ? parseFloat(pvEl.value) || precoRef : precoRef;
+  const frete = getCardFrete(item.id);
+  const f = calcFinancial(precoVenda, frete, cfg, item);
+
+  const viabilityClass = f.custoMaximo > 0 ? (f.margemSemCusto >= cfg.margemMin ? 'viable' : 'warning') : 'unviable';
+  const viabilityLabel = f.custoMaximo > 0 ? (f.margemSemCusto >= cfg.margemMin ? '✓ Viável' : '⚠ Margem apertada') : '✗ Inviável — aumente o preço';
+  const custoMaxClass = f.custoMaximo > 0 ? '' : 'negative';
+
+  return `
+<div class="analysis-card" id="acard-${cardId}">
+  <div class="analysis-header">
+    <div class="analysis-img">
+      ${item.thumbnail ? `<img src="${item.thumbnail}" alt="">` : '<span style="font-size:24px;opacity:.3">📦</span>'}
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="analysis-title">${item.title}</div>
+      <div class="analysis-meta">${item.num_sellers||1} vendedor(es) · ${item.is_full ? 'Full' : 'Normal'}${item.days_online ? ' · ' + item.days_online + ' dias no ar' : ''}</div>
+    </div>
+    <div>
+      <div class="analysis-price">${fmt(precoRef)}</div>
+      <div class="analysis-price-label">menor preço atual</div>
+    </div>
+    <button class="btn-remove" onclick="removeProduct('${item.id}')">×</button>
+  </div>
+  <div class="analysis-body">
+    <div class="inputs-row">
+      <div class="input-card">
+        <label>💰 Preço de venda</label>
+        <input type="number" id="pv-${cardId}" value="${precoVenda.toFixed(2)}" step="0.50" min="0" oninput="onCardChange('${item.id}')">
+        <div class="hint">Preço que você praticará</div>
+      </div>
+      <div class="input-card">
+        <label>🚚 Frete (R$)</label>
+        <input type="number" id="fr-${cardId}" value="${frete.toFixed(2)}" step="0.50" min="0" oninput="onCardChange('${item.id}')">
+        <div class="hint">${item.is_full ? 'Full: geralmente incluso' : 'Custo de envio por venda'}</div>
+      </div>
+    </div>
+
+    <div class="taxa-ml-badge">
+      ML: ${fmtPct(f.taxaML.pct)} (${f.taxaML.nome}) + R$ 6,00 fixo = ${fmt(f.taxaML.valor)} por venda
+    </div>
+
+    <div class="custo-max-box ${custoMaxClass}">
+      <div class="custo-max-label">${f.custoMaximo > 0 ? `🎯 Custo máximo de aquisição para ${fmtPct(cfg.margemMin)} de margem` : `❌ Impossível atingir ${fmtPct(cfg.margemMin)} de margem com este preço`}</div>
+      <div class="custo-max-value">${f.custoMaximo > 0 ? fmt(f.custoMaximo) : '—'}</div>
+      ${f.custoMaximo > 0 ? `<div class="custo-max-hint">Se comprar acima disso, sua margem cai abaixo de ${fmtPct(cfg.margemMin)}</div>` : ''}
+    </div>
+
+    <span class="viability-badge ${viabilityClass}">${viabilityLabel}</span>
+
+    <div class="breakdown">
+      <div class="breakdown-item">
+        <div class="breakdown-label">Receita bruta</div>
+        <div class="breakdown-value green">${fmt(f.pv)}</div>
+        <div class="breakdown-sub">preço de venda</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-label">Custos fixos</div>
+        <div class="breakdown-value red">${fmt(f.totalFixos)}</div>
+        <div class="breakdown-sub">ML + imposto + ops</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-label">Sobra p/ produto</div>
+        <div class="breakdown-value ${f.lucroSemCusto >= 0 ? 'green' : 'red'}">${fmt(f.lucroSemCusto)}</div>
+        <div class="breakdown-sub">antes do custo</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-label">Margem disponível</div>
+        <div class="breakdown-value ${f.margemSemCusto >= cfg.margemMin ? 'green' : 'amber'}">${fmtPct(f.margemSemCusto)}</div>
+        <div class="breakdown-sub">antes do custo</div>
+      </div>
+    </div>
+
+    <div class="waterfall-title">Composição de custos</div>
+    <div class="waterfall-row income"><span>+ Receita de venda</span><span class="waterfall-value">${fmt(f.pv)}</span></div>
+    <div class="waterfall-row cost"><span>− Taxa ML (${fmtPct(f.taxaML.pct)} ${f.taxaML.nome} + R$ 6,00 fixo)</span><span class="waterfall-value">${fmt(f.taxaML.valor)}</span></div>
+    <div class="waterfall-row cost"><span>− Imposto ${fmtPct(cfg.aliquota)}</span><span class="waterfall-value">${fmt(f.imposto)}</span></div>
+    ${frete > 0 ? `<div class="waterfall-row cost"><span>− Frete</span><span class="waterfall-value">${fmt(frete)}</span></div>` : ''}
+    <div class="waterfall-row cost"><span>− Embalagem</span><span class="waterfall-value">${fmt(f.embalagem)}</span></div>
+    <div class="waterfall-row cost"><span>− Operação</span><span class="waterfall-value">${fmt(f.operacao)}</span></div>
+    <div class="waterfall-row result ${f.custoMaximo > 0 ? 'profit' : 'loss'}">
+      <span>= Custo máximo de aquisição</span>
+      <span class="waterfall-value">${f.custoMaximo > 0 ? fmt(f.custoMaximo) : '— inviável'}</span>
+    </div>
+  </div>
+</div>`;
+}
+
+// ── State ─────────────────────────────────────────────────────────────
+let products = [];
+
+function saveProducts() {
+  const slim = products.map(p => ({
+    id: p.id, title: p.title, thumbnail: p.thumbnail || null,
+    price: p.price, price_min: p.price_min, price_max: p.price_max,
+    num_sellers: p.num_sellers, is_full: p.is_full, days_online: p.days_online,
+    seller_info: p.seller_info ? { reputation: p.seller_info.reputation, transactions: p.seller_info.transactions, positive_pct: p.seller_info.positive_pct } : null
+  }));
+  try { localStorage.setItem('garimpo_analise', JSON.stringify(slim)); } catch(e) {}
+}
+
+function loadProducts() {
+  let existing = [];
+  try { existing = JSON.parse(localStorage.getItem('garimpo_analise') || '[]'); } catch(e) {}
+  products = existing;
+  renderAll();
+}
+
+function renderAll() {
+  const panel = document.getElementById('results-panel');
+  const title = document.getElementById('results-title');
+  if (!products.length) {
+    title.textContent = 'Nenhum produto';
+    panel.innerHTML = `<div class="empty-analise">
+      <div class="icon">🛒</div>
+      <h2>Nenhum produto na análise</h2>
+      <p>Volte ao Garimpeiro, selecione produtos<br>e clique em "Analisar selecionados".</p>
+      <a href="/garimpeiro.html" style="display:inline-block;margin-top:20px;padding:10px 20px;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none;font-weight:600">← Voltar ao Garimpo</a>
+    </div>`;
+    return;
+  }
+  title.textContent = products.length + ' produto' + (products.length > 1 ? 's' : '') + ' em análise';
+  const cfg = getConfig();
+  panel.innerHTML = products.map(p => renderCard(p, cfg)).join('');
+}
+
+function onCardChange(productId) {
+  const cardId = productId.replace(/[^a-zA-Z0-9]/g,'');
+  const frEl = document.getElementById('fr-' + cardId);
+  if (frEl) cardStates[productId] = { frete: parseFloat(frEl.value) || 0 };
+  const pvEl = document.getElementById('pv-' + cardId);
+  const pvVal = pvEl?.value;
+  const item = products.find(p => p.id === productId);
+  if (!item) return;
+  const cfg = getConfig();
+  const cardEl = document.getElementById('acard-' + cardId);
+  if (!cardEl) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = renderCard(item, cfg);
+  cardEl.replaceWith(tmp.firstElementChild);
+  const newPv = document.getElementById('pv-' + cardId);
+  if (newPv && pvVal !== undefined) newPv.value = pvVal;
+}
+
+function recalcAll() { renderAll(); }
+
+function removeProduct(productId) {
+  products = products.filter(p => p.id !== productId);
+  saveProducts();
+  renderAll();
+}
+
+function clearAll() {
+  if (!confirm('Remover todos os produtos da análise?')) return;
+  products = [];
+  saveProducts();
+  renderAll();
+}
+
+// Init
+loadConfig();
+loadProducts();
+</script>
+</body>
+</html>
