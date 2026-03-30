@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financeiro — Painel de Gestão</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #F7F6F3;
+  --surf: #FFFFFF;
+  --surf2: #FAFAF8;
+  --surf3: #F0EEE9;
+  --border: #E8E6E0;
+  --border2: #D4D0C8;
+  --text: #1A1916;
+  --text2: #4A4840;
+  --muted: #9A9690;
+  --accent: #FF6B35;
+  --accent-dim: rgba(255,107,53,.1);
+  --green: #16A34A;
+  --green-dim: rgba(22,163,74,.1);
+  --red: #DC2626;
+  --red-dim: rgba(220,38,38,.1);
+  --amber: #D97706;
+  --amber-dim: rgba(217,119,6,.1);
+  --blue: #2563EB;
+  --blue-dim: rgba(37,99,235,.1);
+  --ml: #B8A000;
+  --shopee: #FF6633;
+  --amazon: #CC7A00;
+  --shadow: 0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  position:fixed;top:0;left:0;width:220px;height:100vh;
+  background:var(--surf2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:100;
+}
+.sidebar-logo{
+  padding:20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.logo-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:16px;height:16px}
+.logo-text{font-weight:800;font-size:15px;letter-spacing:-.3px}
+.logo-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.sidebar-nav{padding:12px 8px;flex:1;overflow-y:auto}
+.nav-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:8px 12px 4px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;
+  cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;
+  text-decoration:none;border:1px solid transparent;margin-bottom:1px;
+}
+.nav-item:hover{background:var(--surf2);color:var(--text)}
+.nav-item.active{background:var(--accent-dim);border-color:rgba(255,107,53,.3);color:var(--accent)}
+.nav-item .icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-item .badge{margin-left:auto;font-size:9px;background:var(--accent);color:#fff;border-radius:20px;padding:1px 6px;font-weight:700}
+.sidebar-bottom{padding:12px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px;background:var(--surf);border-radius:8px;border:1px solid var(--border)}
+.user-avatar{width:32px;height:32px;background:var(--accent-dim);border:1px solid rgba(255,107,53,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0}
+.user-name{font-size:12px;font-weight:600;color:var(--text)}
+.user-role{font-size:10px;color:var(--muted)}
+
+/* ── MAIN ── */
+.main{margin-left:220px;min-height:100vh;display:flex;flex-direction:column}
+
+/* ── TOPBAR ── */
+.topbar{
+  padding:0 28px;height:56px;background:var(--surf);border-bottom:1px solid var(--border);box-shadow:var(--shadow);
+  display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text)}
+.topbar-sub{font-size:12px;color:var(--muted);margin-left:4px}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.period-tabs{display:flex;background:var(--surf3);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px}
+.period-tab{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .15s;border:none;background:none;font-family:'Outfit',sans-serif}
+.period-tab.active{background:var(--accent);color:#fff;font-weight:600}
+.period-tab:hover:not(.active){background:var(--surf2);color:var(--text)}
+.btn-add{display:flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-add:hover{background:#e55a28;transform:translateY(-1px)}
+.btn-secondary{display:flex;align-items:center;gap:6px;background:var(--surf2);color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;transition:all .15s}
+.btn-secondary:hover{border-color:var(--border2);color:var(--text)}
+
+/* ── CONTENT ── */
+.content{padding:24px 28px;flex:1}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.kpi-card{
+  background:var(--surf);border:1px solid var(--border);border-radius:12px;
+  padding:18px;position:relative;overflow:hidden;transition:border-color .2s;
+}
+.kpi-card:hover{border-color:var(--border2)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi-card.green::before{background:var(--green)}
+.kpi-card.red::before{background:var(--red)}
+.kpi-card.amber::before{background:var(--amber)}
+.kpi-card.blue::before{background:var(--blue)}
+.kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px}
+.kpi-value{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;color:var(--text);line-height:1;margin-bottom:6px}
+.kpi-change{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
+.kpi-change.up{color:var(--green)}
+.kpi-change.down{color:var(--red)}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* ── PLATFORM STRIP ── */
+.platform-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.platform-card{
+  background:var(--surf);border:1px solid var(--border);border-radius:12px;
+  padding:16px;display:flex;align-items:center;gap:14px;transition:border-color .2s;
+}
+.platform-card:hover{border-color:var(--border2)}
+.platform-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.platform-name{font-size:13px;font-weight:600;color:var(--text)}
+.platform-revenue{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;margin-left:auto;color:var(--text)}
+.platform-share{font-size:11px;color:var(--muted);text-align:right}
+.platform-bar-wrap{width:100%;height:3px;background:var(--surf3);border-radius:2px;margin-top:10px}
+.platform-bar{height:3px;border-radius:2px;transition:width .6s ease}
+
+/* ── CHARTS ROW ── */
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:24px}
+.chart-card{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:20px}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.chart-title{font-size:13px;font-weight:700;color:var(--text)}
+.chart-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.chart-legend{display:flex;gap:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+canvas{max-height:220px}
+
+/* ── TRANSACTIONS ── */
+.transactions-card{background:var(--surf);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px}
+.transactions-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.tx-title{font-size:13px;font-weight:700;color:var(--text)}
+.tx-filters{display:flex;gap:6px}
+.tx-filter{padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--text2);font-family:'Outfit',sans-serif;transition:all .15s}
+.tx-filter.active,.tx-filter:hover{background:var(--surf2);color:var(--text);border-color:var(--border2)}
+table{width:100%;border-collapse:collapse}
+thead th{padding:10px 20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;background:var(--surf3);border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surf3)}
+tbody td{padding:12px 20px;font-size:13px;color:var(--text2)}
+.tx-product{color:var(--text);font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plat-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.plat-ml{background:rgba(255,230,0,.1);color:var(--ml)}
+.plat-shopee{background:rgba(255,102,51,.1);color:var(--shopee)}
+.plat-amazon{background:rgba(255,153,0,.1);color:var(--amazon)}
+.tx-value{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600}
+.tx-value.positive{color:var(--green)}
+.tx-value.negative{color:var(--red)}
+.status-badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.status-ok{background:var(--green-dim);color:var(--green)}
+.status-pending{background:var(--amber-dim);color:var(--amber)}
+.status-canceled{background:var(--red-dim);color:var(--red)}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(4px)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surf);border:1px solid var(--border);border-radius:16px;padding:28px;width:480px;max-width:95vw;box-shadow:var(--shadow-lg);transform:translateY(10px);transition:transform .2s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.3px}
+.form-group input,.form-group select,.form-group textarea{
+  background:var(--surf2);border:1px solid var(--border);color:var(--text);border-radius:8px;
+  padding:9px 12px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--text);
+  outline:none;transition:border-color .15s;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group textarea{resize:vertical;min-height:70px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.btn-cancel{padding:9px 18px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;font-size:13px;transition:all .15s}
+.btn-cancel:hover{border-color:var(--border2);color:var(--text)}
+.btn-save{padding:9px 20px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;transition:all .15s}
+.btn-save:hover{background:#e55a28}
+
+/* ── CSV IMPORT ── */
+.import-zone{border:2px dashed var(--border2);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:16px}
+.import-zone:hover,.import-zone.drag{border-color:var(--accent);background:var(--accent-dim)}
+.import-zone p{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:60px 20px}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:.3}
+.empty-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}
+.empty-desc{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--surf3)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+@media(max-width:900px){
+  .sidebar{width:60px}
+  .sidebar .logo-text,.sidebar .logo-sub,.sidebar .nav-item span:not(.icon),.sidebar-bottom .user-name,.sidebar-bottom .user-role{display:none}
+  .main{margin-left:60px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .charts-row{grid-template-columns:1fr}
+  .platform-strip{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 20 20" fill="none">
+        <rect x="3" y="3" width="6" height="6" rx="1.5" fill="#fff"/>
+        <rect x="11" y="3" width="6" height="6" rx="1.5" fill="#fff" opacity=".6"/>
+        <rect x="3" y="11" width="6" height="6" rx="1.5" fill="#fff" opacity=".6"/>
+        <rect x="11" y="11" width="6" height="6" rx="1.5" fill="#fff" opacity=".3"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">GestãoPro</div>
+      <div class="logo-sub">Multi-plataforma</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Principal</div>
+    <a class="nav-item active" href="#">
+      <span class="icon">💰</span>
+      <span>Financeiro</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="icon">📦</span>
+      <span>Pedidos</span>
+      <span class="badge">12</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="icon">🗃️</span>
+      <span>Estoque</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="icon">📊</span>
+      <span>Relatórios</span>
+    </a>
+    <div class="nav-label" style="margin-top:8px">Ferramentas</div>
+    <a class="nav-item" href="/garimpeiro.html">
+      <span class="icon">⛏</span>
+      <span>Garimpeiro</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="icon">🔗</span>
+      <span>Integrações</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="icon">⚙️</span>
+      <span>Configurações</span>
+    </a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-avatar">M</div>
+      <div>
+        <div class="user-name">Marcos</div>
+        <div class="user-role">Administrador</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Financeiro</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="period-tabs">
+        <button class="period-tab" onclick="setPeriod('hoje',this)">Hoje</button>
+        <button class="period-tab" onclick="setPeriod('mes',this)">Mês</button>
+        <button class="period-tab" onclick="setPeriod('7d',this)">7d</button>
+        <button class="period-tab" onclick="setPeriod('30d',this)">30d</button>
+        <button class="period-tab active" onclick="setPeriod('90d',this)">90d</button>
+        <button class="period-tab" onclick="setPeriod('12m',this)">12m</button>
+        <button class="period-tab" onclick="setPeriod('ytd',this)">Ano</button>
+      </div>
+      <a href="/importador.html" class="btn-secondary" style="text-decoration:none">📥 Importar dados</a>
+      <button class="btn-add" onclick="openModal()">+ Lançamento</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card green">
+        <div class="kpi-label">Receita Bruta</div>
+        <div class="kpi-value" id="kpi-receita">R$ 0</div>
+        <div class="kpi-change up" id="kpi-receita-change">↑ 0%</div>
+        <div class="kpi-sub">vs período anterior</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-label">Custos Totais</div>
+        <div class="kpi-value" id="kpi-custos">R$ 0</div>
+        <div class="kpi-change down" id="kpi-custos-change">↑ 0%</div>
+        <div class="kpi-sub">CMV + taxas + ops</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-label">Lucro Líquido</div>
+        <div class="kpi-value" id="kpi-lucro">R$ 0</div>
+        <div class="kpi-change up" id="kpi-lucro-change">↑ 0%</div>
+        <div class="kpi-sub">margem: <span id="kpi-margem">0%</span></div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-label">Pedidos</div>
+        <div class="kpi-value" id="kpi-pedidos">0</div>
+        <div class="kpi-change up" id="kpi-pedidos-change">↑ 0%</div>
+        <div class="kpi-sub">ticket médio: <span id="kpi-ticket">R$ 0</span></div>
+      </div>
+    </div>
+
+    <!-- PLATFORM STRIP -->
+    <div class="platform-strip" id="platform-strip">
+      <div class="platform-card">
+        <div class="platform-dot" style="background:var(--ml)"></div>
+        <div>
+          <div class="platform-name">Mercado Livre</div>
+          <div style="font-size:10px;color:var(--muted)">0 pedidos</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div class="platform-revenue" id="plat-ml-rev">R$ 0</div>
+          <div class="platform-share" id="plat-ml-share">0%</div>
+        </div>
+      </div>
+      <div class="platform-card">
+        <div class="platform-dot" style="background:var(--shopee)"></div>
+        <div>
+          <div class="platform-name">Shopee</div>
+          <div style="font-size:10px;color:var(--muted)">0 pedidos</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div class="platform-revenue" id="plat-shopee-rev">R$ 0</div>
+          <div class="platform-share" id="plat-shopee-share">0%</div>
+        </div>
+      </div>
+      <div class="platform-card">
+        <div class="platform-dot" style="background:var(--amazon)"></div>
+        <div>
+          <div class="platform-name">Amazon</div>
+          <div style="font-size:10px;color:var(--muted)">0 pedidos</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div class="platform-revenue" id="plat-amazon-rev">R$ 0</div>
+          <div class="platform-share" id="plat-amazon-share">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Receita vs Custo vs Lucro</div>
+            <div class="chart-sub">Evolução no período selecionado</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Receita</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Custo</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Lucro</div>
+          </div>
+        </div>
+        <canvas id="chart-main"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Share por Plataforma</div>
+            <div class="chart-sub">% da receita total</div>
+          </div>
+        </div>
+        <canvas id="chart-plat"></canvas>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="transactions-card">
+      <div class="transactions-header">
+        <div class="tx-title">Lançamentos</div>
+        <div class="tx-filters">
+          <button class="tx-filter active" onclick="filterTx('all',this)">Todos</button>
+          <button class="tx-filter" onclick="filterTx('receita',this)">Receitas</button>
+          <button class="tx-filter" onclick="filterTx('custo',this)">Custos</button>
+          <button class="tx-filter" onclick="filterTx('ml',this)">ML</button>
+          <button class="tx-filter" onclick="filterTx('shopee',this)">Shopee</button>
+          <button class="tx-filter" onclick="filterTx('amazon',this)">Amazon</button>
+        </div>
+      </div>
+      <div id="tx-table-wrap">
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">Nenhum lançamento ainda</div>
+          <div class="empty-desc">Adicione lançamentos manualmente ou importe um CSV<br>para começar a visualizar seu financeiro.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL LANÇAMENTO -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">Novo Lançamento</div>
+    <div class="modal-sub">Adicione uma receita ou custo manualmente</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Descrição / Produto</label>
+        <input type="text" id="f-desc" placeholder="Ex: Venda Organizador de Cabos">
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="f-tipo">
+          <option value="receita">Receita</option>
+          <option value="custo">Custo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Plataforma</label>
+        <select id="f-plat">
+          <option value="ml">Mercado Livre</option>
+          <option value="shopee">Shopee</option>
+          <option value="amazon">Amazon</option>
+          <option value="manual">Manual / Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Valor (R$)</label>
+        <input type="number" id="f-valor" placeholder="0,00" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="f-data">
+      </div>
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="f-cat">
+          <option value="venda">Venda</option>
+          <option value="cmv">Custo do produto (CMV)</option>
+          <option value="taxa">Taxa da plataforma</option>
+          <option value="frete">Frete</option>
+          <option value="imposto">Imposto</option>
+          <option value="operacao">Operação</option>
+          <option value="devolucao">Devolução</option>
+          <option value="outros">Outros</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nº Pedido (opcional)</label>
+        <input type="text" id="f-pedido" placeholder="Ex: #12345">
+      </div>
+      <div class="form-group full">
+        <label>Observações</label>
+        <textarea id="f-obs" placeholder="Opcional..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveTransaction()">Salvar lançamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL IMPORT -->
+<div class="modal-overlay" id="modal-import">
+  <div class="modal">
+    <div class="modal-title">Importar CSV</div>
+    <div class="modal-sub">Formatos aceitos: ML, Shopee, Amazon ou planilha padrão</div>
+    <div class="import-zone" id="import-zone" onclick="document.getElementById('csv-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+      <div style="font-size:32px">📂</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:8px">Clique ou arraste o arquivo CSV aqui</div>
+      <p>Exportado diretamente do painel da plataforma</p>
+    </div>
+    <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="handleCSV(this.files[0])">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">
+      <b style="color:var(--text2)">Colunas esperadas:</b> data, descrição, tipo (receita/custo), plataforma, valor, categoria<br>
+      <a href="#" onclick="downloadTemplate()" style="color:var(--accent);text-decoration:none">↓ Baixar planilha modelo</a>
+    </div>
+    <div id="import-preview"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeImport()">Fechar</button>
+      <button class="btn-save" id="btn-import-save" style="display:none" onclick="confirmImport()">Importar lançamentos</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SUPABASE ─────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://wtfppjltazxspsczzguu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0ZnBwamx0YXp4c3BzY3p6Z3V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MDcxOTUsImV4cCI6MjA5MDQ4MzE5NX0.DYpvCO0rCCZ0Yb_IIl5RXmGrhfEcZPBvXhkF3l8LsIw';
+
+async function supaFetch(path, opts={}) {
+  const res = await fetch(SUPABASE_URL + path, {
+    ...opts,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      ...(opts.headers||{})
+    }
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ── STATE ────────────────────────────────────────────────────────
+let transactions = [];  // dados do Supabase (pedidos como receita)
+let manualTxs = [];     // lançamentos manuais (localStorage)
+let currentPeriod = '90d';
+let currentFilter = 'all';
+let pendingImport = [];
+let chartMain = null;
+let chartPlat = null;
+let isLoading = false;
+
+// ── STORAGE (lançamentos manuais) ─────────────────────────────────
+function save() {
+  try { localStorage.setItem('gestao_manual', JSON.stringify(manualTxs)); } catch(e) {}
+}
+function loadManual() {
+  try { manualTxs = JSON.parse(localStorage.getItem('gestao_manual') || '[]'); } catch(e) {}
+}
+
+// ── LOAD FROM SUPABASE ────────────────────────────────────────────
+async function load() {
+  setStatus('Carregando dados...', true);
+  try {
+    const { from, to } = getDateRange(currentPeriod);
+    const fromStr = from.toISOString();
+    const toStr = to.toISOString();
+
+    // Busca pedidos do Supabase com paginação
+    let allRows = [];
+    let offset = 0;
+    const limit = 1000;
+    while (true) {
+      const rows = await supaFetch(
+        `/rest/v1/pedidos?data_venda=gte.${fromStr}&data_venda=lte.${toStr}&order=data_venda.desc&limit=${limit}&offset=${offset}`,
+        { headers: { 'Range-Unit': 'items', 'Range': `${offset}-${offset+limit-1}` } }
+      );
+      allRows = allRows.concat(rows);
+      if (rows.length < limit) break;
+      offset += limit;
+    }
+
+    // Converte pedidos para formato unificado
+    transactions = allRows.map(p => ({
+      id: p.id,
+      descricao: p.titulo_anuncio || p.pedido_id || '—',
+      tipo: 'receita',
+      plataforma: p.plataforma,
+      valor: Math.abs(p.receita_produto || 0),
+      data: p.data_venda ? p.data_venda.split('T')[0] : null,
+      categoria: 'venda',
+      pedido: p.pedido_id,
+      sku: p.sku,
+      // Adiciona taxas como custo implícito para cálculo
+      _taxa_plataforma: Math.abs(p.taxa_plataforma || 0),
+      _taxa_frete: Math.abs(p.taxa_frete || 0),
+      _total_liquido: p.total_liquido || 0,
+    }));
+
+    // Adiciona taxas como transações de custo separadas
+    const taxas = allRows.filter(p => p.taxa_plataforma).map(p => ({
+      id: p.id + '_taxa',
+      descricao: 'Taxa ML — ' + (p.titulo_anuncio || p.pedido_id || '').substring(0,30),
+      tipo: 'custo',
+      plataforma: p.plataforma,
+      valor: Math.abs(p.taxa_plataforma || 0),
+      data: p.data_venda ? p.data_venda.split('T')[0] : null,
+      categoria: 'taxa',
+      pedido: p.pedido_id,
+    }));
+
+    const fretes = allRows.filter(p => p.taxa_frete && p.taxa_frete < 0).map(p => ({
+      id: p.id + '_frete',
+      descricao: 'Frete — ' + (p.titulo_anuncio || p.pedido_id || '').substring(0,30),
+      tipo: 'custo',
+      plataforma: p.plataforma,
+      valor: Math.abs(p.taxa_frete || 0),
+      data: p.data_venda ? p.data_venda.split('T')[0] : null,
+      categoria: 'frete',
+      pedido: p.pedido_id,
+    }));
+
+    transactions = [...transactions, ...taxas, ...fretes, ...manualTxs];
+    setStatus(allRows.length + ' pedidos carregados do banco de dados', false);
+  } catch(e) {
+    setStatus('Erro ao carregar: ' + e.message, false);
+    // Fallback para localStorage
+    try { transactions = JSON.parse(localStorage.getItem('gestao_fin') || '[]'); } catch(err) {}
+  }
+}
+
+function setStatus(msg, loading) {
+  const dot = document.getElementById('dot');
+  const txt = document.getElementById('status-text');
+  if (dot) dot.className = 'dot' + (loading ? ' active' : '');
+  if (txt) txt.textContent = msg;
+}
+
+// ── PERIOD FILTER ─────────────────────────────────────────────────
+function getDateRange(period) {
+  const now = new Date();
+  const from = new Date();
+  if (period === 'hoje') { from.setHours(0,0,0,0); }
+  else if (period === 'mes') { from.setDate(1); from.setHours(0,0,0,0); }
+  else if (period === '7d') from.setDate(now.getDate() - 7);
+  else if (period === '30d') from.setDate(now.getDate() - 30);
+  else if (period === '90d') from.setDate(now.getDate() - 90);
+  else if (period === '12m') from.setFullYear(now.getFullYear() - 1);
+  else if (period === 'ytd') { from.setMonth(0,1); from.setHours(0,0,0,0); }
+  return { from, to: now };
+}
+
+function filterByPeriod(txs, period) {
+  const { from, to } = getDateRange(period);
+  return txs.filter(t => {
+    const d = new Date(t.data);
+    return d >= from && d <= to;
+  });
+}
+
+function setPeriod(p, el) {
+  currentPeriod = p;
+  document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  load().then(() => updateAll());
+}
+
+// ── CALCULATIONS ──────────────────────────────────────────────────
+function calcKPIs(txs) {
+  const receita = txs.filter(t => t.tipo === 'receita').reduce((a, t) => a + t.valor, 0);
+  const custos = txs.filter(t => t.tipo === 'custo').reduce((a, t) => a + t.valor, 0);
+  const lucro = receita - custos;
+  const margem = receita > 0 ? (lucro / receita) * 100 : 0;
+  const pedidos = txs.filter(t => t.tipo === 'receita' && t.categoria === 'venda').length;
+  const ticket = pedidos > 0 ? receita / pedidos : 0;
+  return { receita, custos, lucro, margem, pedidos, ticket };
+}
+
+function calcByPlatform(txs) {
+  const plats = { ml: 0, shopee: 0, amazon: 0, manual: 0 };
+  txs.filter(t => t.tipo === 'receita').forEach(t => {
+    plats[t.plataforma] = (plats[t.plataforma] || 0) + t.valor;
+  });
+  return plats;
+}
+
+// ── FORMAT ────────────────────────────────────────────────────────
+function fmtBRL(n) {
+  if (n >= 1000000) return 'R$ ' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return 'R$ ' + (n/1000).toFixed(1) + 'k';
+  return 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function fmtFull(n) {
+  return 'R$ ' + Math.abs(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function fmtDate(d) {
+  return new Date(d).toLocaleDateString('pt-BR');
+}
+
+// ── UPDATE UI ─────────────────────────────────────────────────────
+function updateAll() {
+  const filtered = filterByPeriod(transactions, currentPeriod);
+  const kpi = calcKPIs(filtered);
+  const plat = calcByPlatform(filtered);
+  const total = kpi.receita || 1;
+
+  // KPIs
+  document.getElementById('kpi-receita').textContent = fmtBRL(kpi.receita);
+  document.getElementById('kpi-custos').textContent = fmtBRL(kpi.custos);
+  document.getElementById('kpi-lucro').textContent = fmtBRL(kpi.lucro);
+  document.getElementById('kpi-margem').textContent = kpi.margem.toFixed(1) + '%';
+  document.getElementById('kpi-pedidos').textContent = kpi.pedidos;
+  document.getElementById('kpi-ticket').textContent = fmtBRL(kpi.ticket);
+
+  // Platform
+  document.getElementById('plat-ml-rev').textContent = fmtBRL(plat.ml || 0);
+  document.getElementById('plat-ml-share').textContent = ((plat.ml||0)/total*100).toFixed(1) + '%';
+  document.getElementById('plat-shopee-rev').textContent = fmtBRL(plat.shopee || 0);
+  document.getElementById('plat-shopee-share').textContent = ((plat.shopee||0)/total*100).toFixed(1) + '%';
+  document.getElementById('plat-amazon-rev').textContent = fmtBRL(plat.amazon || 0);
+  document.getElementById('plat-amazon-share').textContent = ((plat.amazon||0)/total*100).toFixed(1) + '%';
+
+  // Charts
+  updateCharts(filtered);
+  renderTable();
+}
+
+// ── CHARTS ────────────────────────────────────────────────────────
+function getChartLabels(txs, period) {
+  if (!txs.length) return [];
+  const { from, to } = getDateRange(period);
+  const labels = [];
+  const d = new Date(from);
+  const days = Math.ceil((to - from) / 86400000);
+  const step = days <= 30 ? 1 : days <= 90 ? 7 : 30;
+  while (d <= to) {
+    labels.push(new Date(d));
+    d.setDate(d.getDate() + step);
+  }
+  return labels;
+}
+
+function aggregateByDate(txs, dates, tipo, step) {
+  return dates.map((d, i) => {
+    const next = new Date(d);
+    next.setDate(next.getDate() + (step || 1));
+    return txs
+      .filter(t => t.tipo === tipo && new Date(t.data) >= d && new Date(t.data) < next)
+      .reduce((a, t) => a + t.valor, 0);
+  });
+}
+
+function updateCharts(txs) {
+  const days = currentPeriod === '7d' ? 7 : currentPeriod === '30d' ? 30 : currentPeriod === '90d' ? 90 : 365;
+  const step = days <= 30 ? 1 : days <= 90 ? 7 : 30;
+  const labels = getChartLabels(txs, currentPeriod);
+  const labelStrs = labels.map(d => d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' }));
+  const receitas = aggregateByDate(txs, labels, 'receita', step);
+  const custos = aggregateByDate(txs, labels, 'custo', step);
+  const lucros = receitas.map((r, i) => r - custos[i]);
+
+  const chartCfg = {
+    type: 'line',
+    data: {
+      labels: labelStrs,
+      datasets: [
+        { label: 'Receita', data: receitas, borderColor: '#22C55E', backgroundColor: 'rgba(34,197,94,.1)', tension: 0.4, fill: true, pointRadius: 2 },
+        { label: 'Custo', data: custos, borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,.05)', tension: 0.4, fill: true, pointRadius: 2 },
+        { label: 'Lucro', data: lucros, borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,.05)', tension: 0.4, fill: false, pointRadius: 2 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#E8E6E0' }, ticks: { color: '#9A9690', font: { size: 10 } } },
+        y: { grid: { color: '#E8E6E0' }, ticks: { color: '#9A9690', font: { size: 10 }, callback: v => 'R$' + (v/1000).toFixed(0) + 'k' } }
+      }
+    }
+  };
+
+  if (chartMain) chartMain.destroy();
+  const ctx = document.getElementById('chart-main').getContext('2d');
+  chartMain = new Chart(ctx, chartCfg);
+
+  // Donut
+  const plat = calcByPlatform(txs);
+  const platData = [plat.ml||0, plat.shopee||0, plat.amazon||0, plat.manual||0];
+  const platLabels = ['ML', 'Shopee', 'Amazon', 'Manual'];
+  const platColors = ['#B8A000', '#FF6633', '#CC7A00', '#9A9690'];
+  if (chartPlat) chartPlat.destroy();
+  const ctx2 = document.getElementById('chart-plat').getContext('2d');
+  chartPlat = new Chart(ctx2, {
+    type: 'doughnut',
+    data: { labels: platLabels, datasets: [{ data: platData, backgroundColor: platColors, borderWidth: 0, spacing: 3 }] },
+    options: {
+      responsive: true, maintainAspectRatio: true, cutout: '70%',
+      plugins: { legend: { position: 'bottom', labels: { color: '#4A4840', font: { size: 11 }, padding: 12, boxWidth: 10 } } }
+    }
+  });
+}
+
+// ── TABLE ─────────────────────────────────────────────────────────
+function renderTable() {
+  const filtered = filterByPeriod(transactions, currentPeriod);
+  let txs = [...filtered].reverse();
+  if (currentFilter !== 'all') {
+    if (['ml','shopee','amazon'].includes(currentFilter)) txs = txs.filter(t => t.plataforma === currentFilter);
+    else txs = txs.filter(t => t.tipo === currentFilter);
+  }
+
+  const wrap = document.getElementById('tx-table-wrap');
+  if (!txs.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Nenhum lançamento</div><div class="empty-desc">Adicione lançamentos ou importe um CSV.</div></div>`;
+    return;
+  }
+
+  const platLabel = { ml: 'ML', shopee: 'Shopee', amazon: 'Amazon', manual: 'Manual' };
+  const platClass = { ml: 'plat-ml', shopee: 'plat-shopee', amazon: 'plat-amazon', manual: '' };
+  const statusLabel = { venda: 'ok', cmv: 'ok', taxa: 'ok', frete: 'ok', imposto: 'ok', operacao: 'ok', devolucao: 'canceled', outros: 'pending' };
+
+  wrap.innerHTML = `<table>
+    <thead><tr>
+      <th>Data</th><th>Descrição</th><th>Plataforma</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th></th>
+    </tr></thead>
+    <tbody>
+      ${txs.map(t => `<tr>
+        <td>${fmtDate(t.data)}</td>
+        <td class="tx-product">${t.descricao}</td>
+        <td><span class="plat-badge ${platClass[t.plataforma]}">${platLabel[t.plataforma]||t.plataforma}</span></td>
+        <td style="color:var(--muted);font-size:12px">${t.categoria}</td>
+        <td><span class="status-badge ${t.tipo==='receita'?'status-ok':'status-canceled'}">${t.tipo}</span></td>
+        <td class="tx-value ${t.tipo==='receita'?'positive':'negative'}">${t.tipo==='receita'?'+':'-'} ${fmtFull(t.valor)}</td>
+        <td><button onclick="deleteTransaction('${t.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">×</button></td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function filterTx(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.tx-filter').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+// ── CRUD ──────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function saveTransaction() {
+  const desc = document.getElementById('f-desc').value.trim();
+  const valor = parseFloat(document.getElementById('f-valor').value);
+  const data = document.getElementById('f-data').value;
+  if (!desc || !valor || !data) { alert('Preencha todos os campos obrigatórios.'); return; }
+  const tx = {
+    id: Date.now().toString(),
+    descricao: desc,
+    tipo: document.getElementById('f-tipo').value,
+    plataforma: document.getElementById('f-plat').value,
+    valor: Math.abs(valor),
+    data,
+    categoria: document.getElementById('f-cat').value,
+    pedido: document.getElementById('f-pedido').value,
+    obs: document.getElementById('f-obs').value,
+  };
+  manualTxs.push(tx);
+  save();
+  load().then(() => updateAll());
+  closeModal();
+  // Reset form
+  ['f-desc','f-valor','f-pedido','f-obs'].forEach(id => document.getElementById(id).value = '');
+}
+
+function deleteTransaction(id) {
+  if (!confirm('Remover este lançamento?')) return;
+  manualTxs = manualTxs.filter(t => t.id !== id);
+  save();
+  load().then(() => updateAll());
+}
+
+// ── CSV IMPORT ────────────────────────────────────────────────────
+function openImport() { document.getElementById('modal-import').classList.add('open'); }
+function closeImport() {
+  document.getElementById('modal-import').classList.remove('open');
+  document.getElementById('import-preview').innerHTML = '';
+  document.getElementById('btn-import-save').style.display = 'none';
+  pendingImport = [];
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('import-zone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) handleCSV(file);
+}
+
+function handleCSV(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.split('\n').filter(l => l.trim());
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]/g,''));
+    pendingImport = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(',').map(c => c.trim().replace(/['"]/g,''));
+      const row = {};
+      headers.forEach((h, j) => row[h] = cols[j] || '');
+      const tx = {
+        id: Date.now().toString() + i,
+        descricao: row['descrição'] || row['descricao'] || row['description'] || row['produto'] || 'Importado',
+        tipo: (row['tipo'] || 'receita').toLowerCase(),
+        plataforma: (row['plataforma'] || 'manual').toLowerCase(),
+        valor: Math.abs(parseFloat(row['valor'] || row['value'] || 0)),
+        data: row['data'] || row['date'] || new Date().toISOString().split('T')[0],
+        categoria: row['categoria'] || row['category'] || 'venda',
+        pedido: row['pedido'] || row['order'] || '',
+        obs: row['obs'] || '',
+      };
+      if (tx.valor > 0) pendingImport.push(tx);
+    }
+    const preview = document.getElementById('import-preview');
+    if (pendingImport.length === 0) {
+      preview.innerHTML = '<div style="color:var(--red);font-size:12px;padding:8px 0">Nenhum lançamento válido encontrado. Verifique o formato do arquivo.</div>';
+      return;
+    }
+    preview.innerHTML = `<div style="background:var(--green-dim);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--green)">✓ ${pendingImport.length} lançamentos prontos para importar</div>`;
+    document.getElementById('btn-import-save').style.display = 'block';
+  };
+  reader.readAsText(file);
+}
+
+function confirmImport() {
+  transactions = [...transactions, ...pendingImport];
+  save();
+  updateAll();
+  closeImport();
+}
+
+function downloadTemplate() {
+  const csv = 'data,descricao,tipo,plataforma,valor,categoria,pedido,obs\n2025-01-15,Venda Organizador de Cabos,receita,ml,89.90,venda,#12345,\n2025-01-15,CMV Organizador de Cabos,custo,ml,30.00,cmv,#12345,\n2025-01-16,Taxa ML,custo,ml,14.38,taxa,#12345,';
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'modelo_lancamentos.csv';
+  a.click();
+}
+
+// Sample data removido — dados vêm do Supabase
+
+// ── INIT ──────────────────────────────────────────────────────────
+loadManual();
+load().then(() => updateAll());
+
+// Close modals on overlay click
+document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+document.getElementById('modal-import').addEventListener('click', e => { if (e.target === e.currentTarget) closeImport(); });
+</script>
+</body>
+</html>
