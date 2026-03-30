@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GestãoPro — Painel Principal</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F7F6F3;--surf:#FFFFFF;--surf2:#FAFAF8;
+  --border:#E8E6E0;--text:#1A1916;--text2:#4A4840;--muted:#9A9690;
+  --accent:#FF6B35;--accent-dim:rgba(255,107,53,.1);
+  --green:#16A34A;--green-dim:rgba(22,163,74,.1);
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+header{
+  padding:0 32px;height:60px;background:var(--surf);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+  box-shadow:var(--shadow);
+}
+.logo-mark{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:18px;height:18px}
+.logo-name{font-weight:800;font-size:17px;letter-spacing:-.3px}
+.logo-sub{font-size:11px;color:var(--muted);margin-left:6px;margin-top:1px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.user-pill{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--surf2);border:1px solid var(--border);border-radius:20px;font-size:13px;color:var(--text2)}
+.user-dot{width:8px;height:8px;background:var(--green);border-radius:50%}
+
+.main{max-width:1100px;margin:0 auto;padding:40px 24px}
+
+.welcome{margin-bottom:36px}
+.welcome-title{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.5px;margin-bottom:6px}
+.welcome-sub{font-size:14px;color:var(--muted)}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:40px}
+.stat-pill{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:var(--shadow)}
+.stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
+.stat-value{font-size:22px;font-weight:700;color:var(--text)}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* MODULES */
+.modules-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:16px}
+.modules-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px}
+.module-card{
+  background:var(--surf);border:1px solid var(--border);border-radius:14px;
+  padding:24px;text-decoration:none;color:var(--text);
+  transition:all .2s;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;gap:12px;
+  position:relative;overflow:hidden;
+}
+.module-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--accent)}
+.module-card.featured{border-color:var(--accent);background:linear-gradient(135deg,#fff 0%,#fff8f5 100%)}
+.module-icon{font-size:32px;line-height:1}
+.module-name{font-size:16px;font-weight:700;color:var(--text)}
+.module-desc{font-size:13px;color:var(--muted);line-height:1.5}
+.module-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;
+  width:fit-content;
+}
+.badge-live{background:var(--green-dim);color:var(--green)}
+.badge-soon{background:rgba(100,100,100,.1);color:var(--muted)}
+.badge-new{background:var(--accent-dim);color:var(--accent)}
+.module-arrow{position:absolute;bottom:20px;right:20px;font-size:18px;color:var(--border);transition:color .2s}
+.module-card:hover .module-arrow{color:var(--accent)}
+
+/* PLATFORMS */
+.platforms-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:40px}
+.platform-card{
+  background:var(--surf);border:1px solid var(--border);border-radius:12px;
+  padding:18px;display:flex;align-items:center;gap:14px;
+  box-shadow:var(--shadow);
+}
+.plat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.plat-name{font-size:14px;font-weight:600;color:var(--text)}
+.plat-status{font-size:11px;color:var(--muted);margin-top:2px}
+.plat-action{margin-left:auto;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;padding:5px 12px;border:1px solid rgba(255,107,53,.3);border-radius:6px;transition:all .15s;white-space:nowrap}
+.plat-action:hover{background:var(--accent);color:#fff}
+.plat-action.connected{color:var(--green);border-color:rgba(22,163,74,.3)}
+.plat-action.connected:hover{background:var(--green);color:#fff}
+
+@media(max-width:700px){
+  .modules-grid{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .platforms-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">
+    <svg viewBox="0 0 20 20" fill="none">
+      <rect x="3" y="3" width="6" height="6" rx="1.5" fill="#fff"/>
+      <rect x="11" y="3" width="6" height="6" rx="1.5" fill="#fff" opacity=".6"/>
+      <rect x="3" y="11" width="6" height="6" rx="1.5" fill="#fff" opacity=".6"/>
+      <rect x="11" y="11" width="6" height="6" rx="1.5" fill="#fff" opacity=".3"/>
+    </svg>
+  </div>
+  <span class="logo-name">GestãoPro</span>
+  <span class="logo-sub">Multi-plataforma</span>
+  <div class="header-right">
+    <div class="user-pill">
+      <div class="user-dot"></div>
+      Marcos · Admin
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="welcome">
+    <div class="welcome-title">Bom dia, Marcos 👋</div>
+    <div class="welcome-sub">Aqui está o resumo das suas operações. Selecione um módulo para começar.</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-pill">
+      <div class="stat-label">Receita do mês</div>
+      <div class="stat-value" id="st-receita">—</div>
+      <div class="stat-sub">todas as plataformas</div>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-label">Lucro do mês</div>
+      <div class="stat-value" id="st-lucro">—</div>
+      <div class="stat-sub">após custos e taxas</div>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-label">Pedidos do mês</div>
+      <div class="stat-value" id="st-pedidos">—</div>
+      <div class="stat-sub">vendas confirmadas</div>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-label">Margem</div>
+      <div class="stat-value" id="st-margem">—</div>
+      <div class="stat-sub">lucro / receita bruta</div>
+    </div>
+  </div>
+
+  <!-- MODULES -->
+  <div class="modules-title">Módulos</div>
+  <div class="modules-grid">
+
+    <a href="/financeiro.html" class="module-card featured">
+      <div class="module-icon">💰</div>
+      <div>
+        <div class="module-name">Financeiro</div>
+        <div class="module-desc">Receitas, custos, lucro líquido e fluxo de caixa consolidados por plataforma.</div>
+      </div>
+      <div class="module-badge badge-live">● Disponível</div>
+      <div class="module-arrow">→</div>
+    </a>
+
+    <a href="/garimpeiro.html" class="module-card">
+      <div class="module-icon">⛏</div>
+      <div>
+        <div class="module-name">Garimpeiro</div>
+        <div class="module-desc">Pesquise oportunidades de produtos no Mercado Livre e analise a viabilidade financeira.</div>
+      </div>
+      <div class="module-badge badge-live">● Disponível</div>
+      <div class="module-arrow">→</div>
+    </a>
+
+    <a href="#" class="module-card">
+      <div class="module-icon">📦</div>
+      <div>
+        <div class="module-name">Pedidos</div>
+        <div class="module-desc">Acompanhe pedidos de ML, Shopee e Amazon em um único painel unificado.</div>
+      </div>
+      <div class="module-badge badge-soon">Em breve</div>
+      <div class="module-arrow">→</div>
+    </a>
+
+    <a href="#" class="module-card">
+      <div class="module-icon">🗃️</div>
+      <div>
+        <div class="module-name">Estoque</div>
+        <div class="module-desc">Controle de inventário sincronizado entre todas as plataformas de venda.</div>
+      </div>
+      <div class="module-badge badge-soon">Em breve</div>
+      <div class="module-arrow">→</div>
+    </a>
+
+    <a href="#" class="module-card">
+      <div class="module-icon">📊</div>
+      <div>
+        <div class="module-name">Relatórios</div>
+        <div class="module-desc">Relatórios detalhados por produto, categoria, período e plataforma.</div>
+      </div>
+      <div class="module-badge badge-soon">Em breve</div>
+      <div class="module-arrow">→</div>
+    </a>
+
+    <a href="#" class="module-card">
+      <div class="module-icon">🤖</div>
+      <div>
+        <div class="module-name">IA & Insights</div>
+        <div class="module-desc">Análise de tendências, previsão de demanda e sugestões de precificação com IA.</div>
+      </div>
+      <div class="module-badge badge-soon">Em breve</div>
+      <div class="module-arrow">→</div>
+    </a>
+
+  </div>
+
+  <!-- PLATFORMS -->
+  <div class="modules-title">Plataformas</div>
+  <div class="platforms-row">
+    <div class="platform-card">
+      <div class="plat-icon" style="background:rgba(255,230,0,.15)">🛒</div>
+      <div>
+        <div class="plat-name">Mercado Livre</div>
+        <div class="plat-status">Token ativo via OAuth</div>
+      </div>
+      <a href="/garimpeiro.html" class="plat-action connected">Conectado ✓</a>
+    </div>
+    <div class="platform-card">
+      <div class="plat-icon" style="background:rgba(255,102,51,.1)">🧡</div>
+      <div>
+        <div class="plat-name">Shopee</div>
+        <div class="plat-status">Integração pendente</div>
+      </div>
+      <a href="#" class="plat-action">Conectar</a>
+    </div>
+    <div class="platform-card">
+      <div class="plat-icon" style="background:rgba(255,153,0,.1)">📦</div>
+      <div>
+        <div class="plat-name">Amazon</div>
+        <div class="plat-status">Integração pendente</div>
+      </div>
+      <a href="#" class="plat-action">Conectar</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Puxa dados do financeiro para mostrar no dashboard
+function loadStats() {
+  try {
+    const txs = JSON.parse(localStorage.getItem('gestao_fin') || '[]');
+    const now = new Date();
+    const from = new Date(now.getFullYear(), now.getMonth(), 1);
+    const mes = txs.filter(t => new Date(t.data) >= from);
+    const receita = mes.filter(t => t.tipo === 'receita').reduce((a,t) => a + t.valor, 0);
+    const custos = mes.filter(t => t.tipo === 'custo').reduce((a,t) => a + t.valor, 0);
+    const lucro = receita - custos;
+    const pedidos = mes.filter(t => t.tipo === 'receita' && t.categoria === 'venda').length;
+    const margem = receita > 0 ? (lucro/receita*100) : 0;
+
+    const fmt = n => n >= 1000 ? 'R$ '+(n/1000).toFixed(1)+'k' : 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+    document.getElementById('st-receita').textContent = receita > 0 ? fmt(receita) : '—';
+    document.getElementById('st-lucro').textContent = receita > 0 ? fmt(lucro) : '—';
+    document.getElementById('st-pedidos').textContent = pedidos > 0 ? pedidos : '—';
+    document.getElementById('st-margem').textContent = receita > 0 ? margem.toFixed(1)+'%' : '—';
+  } catch(e) {}
+}
+loadStats();
+</script>
+</body>
+</html>
