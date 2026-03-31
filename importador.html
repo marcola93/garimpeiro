@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Importador — GestãoPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg:#F7F6F3;--surf:#FFFFFF;--surf2:#FAFAF8;--surf3:#F0EEE9;
+  --border:#E8E6E0;--border2:#D4D0C8;
+  --text:#1A1916;--text2:#4A4840;--muted:#9A9690;
+  --accent:#FF6B35;--accent-dim:rgba(255,107,53,.1);
+  --green:#16A34A;--green-dim:rgba(22,163,74,.1);
+  --red:#DC2626;--red-dim:rgba(220,38,38,.1);
+  --amber:#D97706;--amber-dim:rgba(217,119,6,.1);
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{padding:0 24px;height:56px;background:var(--surf);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);position:sticky;top:0;z-index:10}
+.logo-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-mark svg{width:16px;height:16px}
+.logo-name{font-weight:700;font-size:16px}
+.back-btn{margin-left:auto;font-size:13px;color:var(--text2);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:7px;transition:all .15s}
+.back-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.main{max-width:860px;margin:0 auto;padding:32px 24px}
+.page-title{font-size:22px;font-weight:800;letter-spacing:-.3px;margin-bottom:6px}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+
+.step-card{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:16px;box-shadow:var(--shadow)}
+.step-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.step-num{width:28px;height:28px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.step-title{font-size:15px;font-weight:700}
+.step-sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--border2);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all .2s}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-dim)}
+.upload-zone .icon{font-size:40px;margin-bottom:10px}
+.upload-zone h3{font-size:14px;font-weight:600;margin-bottom:4px}
+.upload-zone p{font-size:12px;color:var(--muted)}
+.upload-zone input{display:none}
+
+/* PLATFORM TABS */
+.plat-tabs{display:flex;gap:8px;margin-bottom:16px}
+.plat-tab{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:none;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;color:var(--text2)}
+.plat-tab:hover{border-color:var(--border2);color:var(--text)}
+.plat-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* PREVIEW */
+.preview-wrap{margin-top:14px}
+.preview-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.preview-stat{background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.preview-stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px}
+.preview-stat-value{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:var(--text)}
+
+.preview-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{padding:8px 12px;background:var(--surf3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surf2)}
+
+/* PROGRESS */
+.progress-wrap{margin-top:14px}
+.progress-bar-bg{height:8px;background:var(--surf3);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.progress-bar{height:8px;background:var(--accent);border-radius:4px;transition:width .3s;width:0%}
+.progress-text{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+/* BUTTONS */
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{background:#e55a28;transform:translateY(-1px)}
+.btn-primary:disabled{background:var(--border2);color:var(--muted);cursor:not-allowed;transform:none}
+.btn-secondary{background:var(--surf2);color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;transition:all .15s}
+.btn-secondary:hover{border-color:var(--border2);color:var(--text)}
+
+/* ALERT */
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-top:12px;display:none}
+.alert.success{background:var(--green-dim);border:1px solid rgba(22,163,74,.3);color:var(--green)}
+.alert.error{background:var(--red-dim);border:1px solid rgba(220,38,38,.3);color:var(--red)}
+.alert.info{background:var(--accent-dim);border:1px solid rgba(255,107,53,.3);color:var(--accent)}
+.alert.show{display:block}
+
+/* LOG */
+.import-log{background:var(--surf3);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);max-height:200px;overflow-y:auto;margin-top:12px;display:none}
+.log-line{padding:2px 0;border-bottom:1px solid var(--border)}
+.log-line:last-child{border-bottom:none}
+.log-ok{color:var(--green)}
+.log-err{color:var(--red)}
+.log-info{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none">
+    <div class="logo-mark">
+      <svg viewBox="0 0 20 20" fill="none">
+        <rect x="3" y="3" width="6" height="6" rx="1.5" fill="#fff"/>
+        <rect x="11" y="3" width="6" height="6" rx="1.5" fill="#fff" opacity=".6"/>
+        <rect x="3" y="11" width="6" height="6" rx="1.5" fill="#fff" opacity=".6"/>
+        <rect x="11" y="11" width="6" height="6" rx="1.5" fill="#fff" opacity=".3"/>
+      </svg>
+    </div>
+    <span class="logo-name">GestãoPro</span>
+  </a>
+  <a href="/financeiro.html" class="back-btn">← Voltar ao Financeiro</a>
+</header>
+
+<div class="main">
+  <div class="page-title">Importar dados históricos</div>
+  <div class="page-sub">Importe seus relatórios de vendas do Mercado Livre, Shopee e Amazon para o banco de dados.</div>
+
+  <!-- STEP 1: Plataforma -->
+  <div class="step-card">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div>
+        <div class="step-title">Selecione a plataforma</div>
+        <div class="step-sub">Cada plataforma tem um formato diferente de exportação</div>
+      </div>
+    </div>
+    <div class="plat-tabs">
+      <button class="plat-tab active" onclick="setPlat('ml',this)">🛒 Mercado Livre</button>
+      <button class="plat-tab" onclick="setPlat('shopee',this)">🧡 Shopee</button>
+      <button class="plat-tab" onclick="setPlat('amazon',this)">📦 Amazon</button>
+    </div>
+    <div id="plat-hint" style="font-size:12px;color:var(--muted);padding:8px 12px;background:var(--surf2);border-radius:6px;border:1px solid var(--border)">
+      <b style="color:var(--text2)">Mercado Livre:</b> Acesse Minha conta → Vendas → Exportar relatório → "Vendas BR"
+    </div>
+  </div>
+
+  <!-- STEP 2: Upload -->
+  <div class="step-card">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div>
+        <div class="step-title">Selecione o arquivo</div>
+        <div class="step-sub">Formatos aceitos: .xlsx, .xls, .csv</div>
+      </div>
+    </div>
+    <div class="upload-zone" id="upload-zone"
+      onclick="document.getElementById('file-input').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="handleDrop(event)">
+      <div class="icon">📂</div>
+      <h3 id="upload-title">Clique ou arraste o arquivo aqui</h3>
+      <p id="upload-sub">XLSX exportado diretamente do painel da plataforma</p>
+      <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(this.files[0])">
+    </div>
+    <div id="preview-wrap" class="preview-wrap" style="display:none">
+      <div class="preview-stats" id="preview-stats"></div>
+      <div class="preview-table-wrap">
+        <table id="preview-table"></table>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+        <button class="btn-secondary" onclick="resetUpload()">↩ Trocar arquivo</button>
+        <button class="btn-primary" id="btn-import" onclick="startImport()">
+          ⬆ Importar para o banco de dados
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Progress -->
+  <div class="step-card" id="step-import" style="display:none">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div>
+        <div class="step-title">Importando dados...</div>
+        <div class="step-sub">Não feche esta página durante a importação</div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar-bg"><div class="progress-bar" id="progress-bar"></div></div>
+      <div class="progress-text" id="progress-text">Preparando...</div>
+    </div>
+    <div class="alert" id="alert-result"></div>
+    <div class="import-log" id="import-log"></div>
+  </div>
+
+</div>
+
+<script>
+const SUPABASE_URL = 'https://wtfppjltazxspsczzguu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0ZnBwamx0YXp4c3BzY3p6Z3V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MDcxOTUsImV4cCI6MjA5MDQ4MzE5NX0.DYpvCO0rCCZ0Yb_IIl5RXmGrhfEcZPBvXhkF3l8LsIw';
+
+let currentPlat = 'ml';
+let parsedRows = [];
+
+const PLAT_HINTS = {
+  ml: '<b style="color:var(--text2)">Mercado Livre:</b> Minha conta → Vendas → Exportar relatório → "Vendas BR" (.xlsx)',
+  shopee: '<b style="color:var(--text2)">Shopee:</b> Painel do Vendedor → Meus Pedidos → Exportar → selecione o período (.xlsx)',
+  amazon: '<b style="color:var(--text2)">Amazon:</b> Seller Central → Relatórios → Relatórios de negócios → Pedidos (.csv)',
+};
+
+function setPlat(plat, el) {
+  currentPlat = plat;
+  document.querySelectorAll('.plat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('plat-hint').innerHTML = PLAT_HINTS[plat];
+  resetUpload();
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+
+function handleFile(file) {
+  if (!file) return;
+  document.getElementById('upload-title').textContent = '⏳ Lendo arquivo...';
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+
+      if (currentPlat === 'ml') parsedRows = parseML(ws);
+      else if (currentPlat === 'shopee') parsedRows = parseShopee(ws);
+      else parsedRows = parseAmazon(ws);
+
+      showPreview(file.name, parsedRows);
+    } catch(err) {
+      document.getElementById('upload-title').textContent = '❌ Erro ao ler arquivo';
+      document.getElementById('upload-sub').textContent = err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── PARSERS ───────────────────────────────────────────────────────────
+
+function parseML(ws) {
+  // ML tem cabeçalho na linha 6 (index 5)
+  const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  // Encontra linha do cabeçalho
+  let headerRow = 5;
+  for (let i = 0; i < 10; i++) {
+    if (data[i] && data[i].includes('N.º de venda')) { headerRow = i; break; }
+  }
+  const headers = data[headerRow];
+  const rows = [];
+  for (let i = headerRow + 1; i < data.length; i++) {
+    const r = data[i];
+    if (!r[0]) continue;
+    const get = col => {
+      const idx = headers.indexOf(col);
+      if (idx < 0) return '';
+      const v = r[idx];
+      return v === undefined || v === null ? '' : v;
+    };
+    const getNum = col => {
+      const v = get(col);
+      if (v === '' || v === null) return 0;
+      const n = parseFloat(String(v).replace(',','.'));
+      return isNaN(n) ? 0 : n;
+    };
+    // Parse data — formato ML: "30 de março de 2026 19:20 hs."
+    let dataVenda = null;
+    const dataRaw = get('Data da venda');
+    if (dataRaw instanceof Date && !isNaN(dataRaw)) {
+      dataVenda = dataRaw.toISOString();
+    } else {
+      const dataStr = String(dataRaw || '');
+      if (dataStr) {
+        // Regex que ignora o nome do mês com acento: captura dia, ano, hora
+        const m = dataStr.match(/(\d+)\s+de\s+.+\s+de\s+(\d{4})\s+(\d+):(\d+)/i);
+        if (m) {
+          // Extrai o nome do mês manualmente pela posição
+          const partes = dataStr.split(' de ');
+          // partes[0]=dia, partes[1]=mês, partes[2]="ano hora hs."
+          const nomeMes = partes[1] ? partes[1].trim().toLowerCase() : '';
+          const meses = {janeiro:0,fevereiro:1,'março':2,abril:3,maio:4,junho:5,julho:6,agosto:7,setembro:8,outubro:9,novembro:10,dezembro:11};
+          const mes = meses[nomeMes];
+          if (mes !== undefined) {
+            dataVenda = new Date(parseInt(m[2]), mes, parseInt(m[1]), parseInt(m[3]), parseInt(m[4])).toISOString();
+          } else {
+            // Fallback: usa apenas dia/ano/hora sem mês correto
+            dataVenda = new Date(parseInt(m[2]), 0, parseInt(m[1]), parseInt(m[3]), parseInt(m[4])).toISOString();
+          }
+        } else {
+          const d = new Date(dataStr);
+          if (!isNaN(d)) dataVenda = d.toISOString();
+        }
+      }
+    }
+    rows.push({
+      plataforma: 'ml',
+      pedido_id: String(get('N.º de venda') || ''),
+      data_venda: dataVenda,
+      status: String(get('Estado') || ''),
+      sku: String(get('SKU') || ''),
+      titulo_anuncio: String(get('Título do anúncio') || ''),
+      variacao: String(get('Variação') || ''),
+      unidades: getNum('Unidades') || 1,
+      receita_produto: getNum('Receita por produtos (BRL)'),
+      taxa_plataforma: getNum('Tarifa de venda e impostos (BRL)'),
+      receita_frete: getNum('Receita por envio (BRL)'),
+      taxa_frete: getNum('Tarifas de envio (BRL)'),
+      cancelamento: getNum('Cancelamentos e reembolsos (BRL)'),
+      total_liquido: getNum('Total (BRL)'),
+      tipo_anuncio: String(get('Tipo de anúncio') || ''),
+      tipo_entrega: String(get('Forma de entrega') || ''),
+      cidade_comprador: String(get('Cidade') || ''),
+      estado_comprador: String(get('Estado') || ''),
+      canal_venda: String(get('Canal de venda') || 'Mercado Livre'),
+      venda_publicidade: String(get('Venda por publicidade') || '').trim() === 'Sim',
+    });
+  }
+  return rows;
+}
+
+function parseShopee(ws) {
+  const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
+  return data.map(r => ({
+    plataforma: 'shopee',
+    pedido_id: String(r['Número do pedido'] || r['Order ID'] || ''),
+    data_venda: r['Data do pedido'] || r['Order Date'] ? new Date(r['Data do pedido'] || r['Order Date']).toISOString() : null,
+    status: String(r['Status do pedido'] || r['Order Status'] || ''),
+    sku: String(r['SKU do produto'] || r['Product SKU'] || ''),
+    titulo_anuncio: String(r['Nome do produto'] || r['Product Name'] || ''),
+    variacao: String(r['Variações'] || r['Variation Name'] || ''),
+    unidades: parseFloat(r['Quantidade'] || r['Quantity'] || 1),
+    receita_produto: parseFloat(r['Valor original do pedido'] || r['Original Price'] || 0),
+    taxa_plataforma: parseFloat(r['Taxa da comissão'] || r['Commission Fee'] || 0) * -1,
+    receita_frete: parseFloat(r['Frete cobrado do comprador'] || 0),
+    taxa_frete: parseFloat(r['Taxa de frete'] || 0) * -1,
+    cancelamento: 0,
+    total_liquido: parseFloat(r['Valor líquido'] || r['Net Revenue'] || 0),
+    tipo_anuncio: '',
+    tipo_entrega: String(r['Método de envio'] || ''),
+    cidade_comprador: '',
+    estado_comprador: String(r['Estado de envio'] || ''),
+    canal_venda: 'Shopee',
+    venda_publicidade: false,
+  })).filter(r => r.pedido_id);
+}
+
+function parseAmazon(ws) {
+  const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
+  return data.map(r => ({
+    plataforma: 'amazon',
+    pedido_id: String(r['order-id'] || r['Order ID'] || ''),
+    data_venda: r['purchase-date'] || r['Order Date'] ? new Date(r['purchase-date'] || r['Order Date']).toISOString() : null,
+    status: String(r['order-status'] || r['Order Status'] || ''),
+    sku: String(r['sku'] || r['SKU'] || ''),
+    titulo_anuncio: String(r['product-name'] || r['Product Name'] || ''),
+    variacao: '',
+    unidades: parseFloat(r['quantity'] || r['Quantity'] || 1),
+    receita_produto: parseFloat(r['item-price'] || r['Item Price'] || 0),
+    taxa_plataforma: parseFloat(r['item-tax'] || 0) * -1,
+    receita_frete: parseFloat(r['shipping-price'] || 0),
+    taxa_frete: parseFloat(r['shipping-tax'] || 0) * -1,
+    cancelamento: 0,
+    total_liquido: parseFloat(r['item-price'] || 0),
+    tipo_anuncio: '',
+    tipo_entrega: String(r['ship-service-level'] || ''),
+    cidade_comprador: String(r['ship-city'] || ''),
+    estado_comprador: String(r['ship-state'] || ''),
+    canal_venda: 'Amazon',
+    venda_publicidade: false,
+  })).filter(r => r.pedido_id);
+}
+
+// ── PREVIEW ───────────────────────────────────────────────────────────
+function showPreview(filename, rows) {
+  if (!rows.length) {
+    document.getElementById('upload-title').textContent = '❌ Nenhum dado encontrado';
+    document.getElementById('upload-sub').textContent = 'Verifique se selecionou a plataforma correta';
+    return;
+  }
+
+  document.getElementById('upload-title').textContent = '✓ ' + filename;
+  document.getElementById('upload-sub').textContent = rows.length + ' registros encontrados';
+
+  const totalReceita = rows.reduce((a, r) => a + (r.receita_produto || 0), 0);
+  const totalLiquido = rows.reduce((a, r) => a + (r.total_liquido || 0), 0);
+  const fmt = n => 'R$ ' + Math.abs(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+  document.getElementById('preview-stats').innerHTML = `
+    <div class="preview-stat"><div class="preview-stat-label">Registros</div><div class="preview-stat-value">${rows.length.toLocaleString('pt-BR')}</div></div>
+    <div class="preview-stat"><div class="preview-stat-label">Receita bruta</div><div class="preview-stat-value">${fmt(totalReceita)}</div></div>
+    <div class="preview-stat"><div class="preview-stat-label">Total líquido</div><div class="preview-stat-value">${fmt(totalLiquido)}</div></div>
+    <div class="preview-stat"><div class="preview-stat-label">Período</div><div class="preview-stat-value" style="font-size:12px">${rows.length > 0 && rows[rows.length-1].data_venda ? new Date(rows[rows.length-1].data_venda).toLocaleDateString('pt-BR') : '—'}</div></div>
+  `;
+
+  // Preview table (first 5 rows)
+  const cols = ['pedido_id','data_venda','sku','titulo_anuncio','unidades','receita_produto','total_liquido'];
+  const colLabels = ['Pedido','Data','SKU','Produto','Qtd','Receita','Total'];
+  document.getElementById('preview-table').innerHTML = `
+    <thead><tr>${colLabels.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+    <tbody>${rows.slice(0,5).map(r => `<tr>${cols.map(c => {
+      let v = r[c];
+      if (c === 'data_venda' && v) v = new Date(v).toLocaleDateString('pt-BR');
+      if (c === 'titulo_anuncio') v = String(v||'').substring(0,30) + (String(v||'').length > 30 ? '...' : '');
+      if (typeof v === 'number') v = c.includes('receita') || c.includes('total') ? 'R$ '+v.toFixed(2) : v;
+      return `<td>${v || '—'}</td>`;
+    }).join('')}</tr>`).join('')}</tbody>
+  `;
+
+  document.getElementById('preview-wrap').style.display = 'block';
+}
+
+function resetUpload() {
+  parsedRows = [];
+  document.getElementById('file-input').value = '';
+  document.getElementById('upload-title').textContent = 'Clique ou arraste o arquivo aqui';
+  document.getElementById('upload-sub').textContent = 'XLSX exportado diretamente do painel da plataforma';
+  document.getElementById('preview-wrap').style.display = 'none';
+  document.getElementById('step-import').style.display = 'none';
+}
+
+// ── IMPORT ────────────────────────────────────────────────────────────
+async function startImport() {
+  if (!parsedRows.length) return;
+  document.getElementById('step-import').style.display = 'block';
+  document.getElementById('btn-import').disabled = true;
+  document.getElementById('import-log').style.display = 'block';
+  const log = document.getElementById('import-log');
+  log.innerHTML = '';
+
+  const addLog = (msg, type='info') => {
+    const d = document.createElement('div');
+    d.className = 'log-line log-' + type;
+    d.textContent = new Date().toLocaleTimeString('pt-BR') + ' — ' + msg;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+  };
+
+  const BATCH = 100;
+  let imported = 0;
+  let errors = 0;
+  const total = parsedRows.length;
+
+  addLog(`Iniciando importação de ${total} registros...`);
+
+  for (let i = 0; i < parsedRows.length; i += BATCH) {
+    const batch = parsedRows.slice(i, i + BATCH);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/pedidos`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates,return=minimal'
+        },
+        body: JSON.stringify(batch)
+      });
+      if (res.ok) {
+        imported += batch.length;
+        addLog(`Lote ${Math.floor(i/BATCH)+1}: ${batch.length} registros importados ✓`, 'ok');
+      } else {
+        const err = await res.text();
+        errors += batch.length;
+        addLog(`Lote ${Math.floor(i/BATCH)+1}: ERRO — ${err.substring(0,100)}`, 'err');
+      }
+    } catch(e) {
+      errors += batch.length;
+      addLog(`Lote ${Math.floor(i/BATCH)+1}: ERRO — ${e.message}`, 'err');
+    }
+    const pct = Math.round((i + batch.length) / total * 100);
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = `${i + batch.length} / ${total} registros (${pct}%)`;
+    await new Promise(r => setTimeout(r, 50));
+  }
+
+  const alert = document.getElementById('alert-result');
+  if (errors === 0) {
+    alert.className = 'alert success show';
+    alert.textContent = `✓ ${imported} registros importados com sucesso! Acesse o Financeiro para ver os dados.`;
+    addLog(`Importação concluída! ${imported} registros. 0 erros.`, 'ok');
+  } else {
+    alert.className = 'alert error show';
+    alert.textContent = `⚠ ${imported} importados, ${errors} erros. Verifique o log abaixo.`;
+  }
+  document.getElementById('btn-import').disabled = false;
+}
+</script>
+</body>
+</html>
